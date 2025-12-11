@@ -32,6 +32,8 @@ kotlinxSerializationCore = "1.9.0"
 # OTHER
 junit = "4.13.2"
 zxing = "3.5.4"
+imagekit = "3.0.1"
+coil = "3.3.0"
 
 # Nav 3
 nav3Core = "1.0.0"
@@ -105,6 +107,13 @@ mockito-kotlin = { module = "org.mockito.kotlin:mockito-kotlin", version.ref = "
 
 # QR Code
 zxing-core = { module = "com.google.zxing:core", version.ref = "zxing" }
+
+# ImageKit.io
+imagekit-android = { module = "com.github.imagekit-developer.imagekit-android:imagekit-android", version.ref = "imagekit" }
+
+# Coil (Image Loading for Compose)
+coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" }
+coil-network = { module = "io.coil-kt.coil3:coil-network-okhttp", version.ref = "coil" }
 
 [plugins]
 # CORE PLUGINS

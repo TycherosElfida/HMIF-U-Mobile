@@ -99,6 +99,13 @@ dependencies {
     // QR Code
     implementation(libs.zxing.core)
 
+    // ImageKit.io (Image CDN & Storage)
+    implementation(libs.imagekit.android)
+
+    // Coil 3 (Image Loading for Compose)
+    implementation(libs.coil.compose)
+    implementation(libs.coil.network)
+
     testImplementation(libs.junit)
     testImplementation(libs.mockito.kotlin)
     testImplementation(libs.kotlinx.coroutines.test)
