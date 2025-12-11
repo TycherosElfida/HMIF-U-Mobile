@@ -121,29 +121,40 @@ class MemberCardViewModel @Inject constructor(
 
     private fun startQrRotation() {
         viewModelScope.launch {
+            var lastCode = ""
+            var lastQrBitmap: Bitmap? = null
+
             while (isActive) {
                 val timeRemaining = TotpGenerator.getTimeRemaining()
                 val code = TotpGenerator.generateCode(userSecret)
 
-                // Generate QR bitmap
-                val qrData = QrCheckInData(
-                    userId = userId,
-                    eventId = "general", // For general member card
-                    code = code,
-                    timestamp = System.currentTimeMillis()
-                ).toQrString()
+                // Only regenerate QR bitmap when code changes (every 30 seconds)
+                if (code != lastCode) {
+                    lastCode = code
 
-                val qrBitmap = generateQrBitmap(qrData)
+                    // Use the start of the current 30-second window as timestamp
+                    // This ensures the same timestamp for the entire window
+                    val windowTimestamp = (System.currentTimeMillis() / 30000L) * 30000L
+
+                    val qrData = QrCheckInData(
+                        userId = userId,
+                        eventId = "general", // For general member card
+                        code = code,
+                        timestamp = windowTimestamp
+                    ).toQrString()
+
+                    lastQrBitmap = generateQrBitmap(qrData)
+                }
 
                 _uiState.update {
                     it.copy(
-                        qrBitmap = qrBitmap,
+                        qrBitmap = lastQrBitmap,
                         timeRemaining = timeRemaining,
                         currentCode = code
                     )
                 }
 
-                // Wait 1 second and update
+                // Wait 1 second to update the countdown timer
                 delay(1000)
             }
         }
