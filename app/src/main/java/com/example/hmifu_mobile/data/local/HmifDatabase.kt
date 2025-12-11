@@ -5,15 +5,10 @@ import androidx.room.RoomDatabase
 import com.example.hmifu_mobile.data.local.dao.AnnouncementDao
 import com.example.hmifu_mobile.data.local.dao.CertificateDao
 import com.example.hmifu_mobile.data.local.dao.EventDao
-import com.example.hmifu_mobile.data.local.dao.RegistrationDao
-import com.example.hmifu_mobile.data.local.dao.UserDao
-import com.example.hmifu_mobile.data.local.entity.AnnouncementEntity
-import com.example.hmifu_mobile.data.local.entity.CertificateEntity
-import com.example.hmifu_mobile.data.local.entity.EventEntity
-import com.example.hmifu_mobile.data.local.dao.EventDao
 import com.example.hmifu_mobile.data.local.dao.EventRegistrationDao
 import com.example.hmifu_mobile.data.local.dao.UserDao
 import com.example.hmifu_mobile.data.local.entity.AnnouncementEntity
+import com.example.hmifu_mobile.data.local.entity.CertificateEntity
 import com.example.hmifu_mobile.data.local.entity.EventEntity
 import com.example.hmifu_mobile.data.local.entity.EventRegistrationEntity
 import com.example.hmifu_mobile.data.local.entity.UserEntity
@@ -26,7 +21,7 @@ import com.example.hmifu_mobile.data.local.entity.UserEntity
     entities = [
         UserEntity::class,
         EventEntity::class,
-        RegistrationEntity::class,
+        EventRegistrationEntity::class,
         AnnouncementEntity::class,
         CertificateEntity::class
     ],
@@ -36,7 +31,7 @@ import com.example.hmifu_mobile.data.local.entity.UserEntity
 abstract class HmifDatabase : RoomDatabase() {
     abstract fun userDao(): UserDao
     abstract fun eventDao(): EventDao
-    abstract fun registrationDao(): RegistrationDao
+    abstract fun eventRegistrationDao(): EventRegistrationDao
     abstract fun announcementDao(): AnnouncementDao
     abstract fun certificateDao(): CertificateDao
 }

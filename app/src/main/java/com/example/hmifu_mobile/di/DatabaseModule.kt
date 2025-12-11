@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Room
 import com.example.hmifu_mobile.data.local.HmifDatabase
 import com.example.hmifu_mobile.data.local.dao.AnnouncementDao
+import com.example.hmifu_mobile.data.local.dao.CertificateDao
 import com.example.hmifu_mobile.data.local.dao.EventDao
 import com.example.hmifu_mobile.data.local.dao.EventRegistrationDao
 import com.example.hmifu_mobile.data.local.dao.UserDao
@@ -49,5 +50,10 @@ object DatabaseModule {
     @Singleton
     fun provideEventRegistrationDao(database: HmifDatabase): EventRegistrationDao =
         database.eventRegistrationDao()
+
+    @Provides
+    @Singleton
+    fun provideCertificateDao(database: HmifDatabase): CertificateDao =
+        database.certificateDao()
 }
 

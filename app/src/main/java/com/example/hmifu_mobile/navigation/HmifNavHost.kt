@@ -130,6 +130,12 @@ fun HmifNavHost(modifier: Modifier = Modifier) {
                 onNavigateBack = { navController.popBackStack() }
             )
         }
+
+        composable("certificates") {
+            com.example.hmifu_mobile.feature.certificates.CertificatesScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
         composable(Screen.Profile.route) {
             MainScaffold(
                 currentRoute = Screen.Profile.route,
@@ -147,6 +153,7 @@ fun HmifNavHost(modifier: Modifier = Modifier) {
                     onEditProfile = { navController.navigate("edit_profile") },
                     onSettings = { navController.navigate("settings") },
                     onMemberCard = { navController.navigate("member_card") },
+                    onCertificates = { navController.navigate("certificates") },
                     onLogout = {
                         authViewModel.logout()
                         navController.navigate(Screen.Login.route) {

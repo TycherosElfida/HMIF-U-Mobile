@@ -16,6 +16,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
+import androidx.compose.material.icons.filled.CardMembership
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.QrCode
@@ -57,6 +58,7 @@ fun ProfileScreen(
     onEditProfile: () -> Unit = {},
     onSettings: () -> Unit = {},
     onMemberCard: () -> Unit = {},
+    onCertificates: () -> Unit = {},
     onLogout: () -> Unit,
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
@@ -114,6 +116,7 @@ fun ProfileScreen(
                     profile = uiState.profile!!,
                     onEditProfile = onEditProfile,
                     onMemberCard = onMemberCard,
+                    onCertificates = onCertificates,
                     onLogout = viewModel::logout,
                     modifier = Modifier.padding(padding)
                 )
@@ -138,6 +141,7 @@ private fun ProfileContent(
     profile: UserProfile,
     onEditProfile: () -> Unit,
     onMemberCard: () -> Unit,
+    onCertificates: () -> Unit,
     onLogout: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -219,6 +223,18 @@ private fun ProfileContent(
             Icon(Icons.Default.QrCode, contentDescription = null)
             Spacer(modifier = Modifier.width(8.dp))
             Text("My Member Card")
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Certificates button
+        Button(
+            onClick = onCertificates,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Icon(Icons.Default.CardMembership, contentDescription = null)
+            Spacer(modifier = Modifier.width(8.dp))
+            Text("My Certificates")
         }
 
         Spacer(modifier = Modifier.height(24.dp))
