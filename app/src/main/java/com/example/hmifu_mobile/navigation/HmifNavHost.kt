@@ -152,7 +152,7 @@ fun HmifNavHost(modifier: Modifier = Modifier) {
                 }
             ) {
                 com.example.hmifu_mobile.feature.profile.ProfileScreen(
-                    onEditProfile = { /* TODO: Navigate to edit profile */ },
+                    onEditProfile = { navController.navigate("edit_profile") },
                     onSettings = { navController.navigate("settings") },
                     onMemberCard = { navController.navigate("member_card") },
                     onLogout = {
@@ -169,6 +169,14 @@ fun HmifNavHost(modifier: Modifier = Modifier) {
         composable("settings") {
             com.example.hmifu_mobile.feature.settings.SettingsScreen(
                 onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        // Edit Profile screen
+        composable("edit_profile") {
+            com.example.hmifu_mobile.feature.profile.EditProfileScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onSuccess = { navController.popBackStack() }
             )
         }
 
