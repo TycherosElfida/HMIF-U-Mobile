@@ -2,40 +2,61 @@ package com.example.hmifu_mobile.feature.profile
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Badge
+import androidx.compose.material.icons.filled.Code
+import androidx.compose.material.icons.filled.Numbers
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.School
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import com.example.hmifu_mobile.ui.components.LoadingButton
-import com.example.hmifu_mobile.ui.components.LoadingSkeletonList
-import com.example.hmifu_mobile.ui.components.ShimmerBox
+import com.example.hmifu_mobile.ui.components.GlassmorphicCard
+import com.example.hmifu_mobile.ui.components.GradientButton
+import com.example.hmifu_mobile.ui.components.SkeletonCard
+import com.example.hmifu_mobile.ui.components.StaggeredAnimatedItem
+import com.example.hmifu_mobile.ui.theme.GradientEnd
+import com.example.hmifu_mobile.ui.theme.HmifBlue
+import com.example.hmifu_mobile.ui.theme.HmifOrange
+import com.example.hmifu_mobile.ui.theme.HmifTheme
 
 /**
- * Screen for editing user profile.
+ * Edit Profile Screen - Premium 2025 Design
+ *
+ * Features:
+ * - Glassmorphic form card
+ * - Styled text fields with icons
+ * - Gradient save button
+ * - Loading skeleton state
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -79,95 +100,201 @@ fun EditProfileScreen(
                             contentDescription = "Back"
                         )
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.Transparent
+                )
             )
-        }
+        },
+        containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         if (uiState.isLoading) {
-            LoadingSkeletonList(itemCount = 5) {
-                ShimmerBox(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(56.dp)
-                )
-            }
+            LoadingState(modifier = Modifier.padding(padding))
         } else {
-            Column(
+            LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(padding)
-                    .padding(16.dp)
-                    .verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                    .padding(padding),
+                contentPadding = PaddingValues(HmifTheme.spacing.lg),
+                verticalArrangement = Arrangement.spacedBy(HmifTheme.spacing.lg)
             ) {
-                // Name
-                OutlinedTextField(
-                    value = uiState.name,
-                    onValueChange = viewModel::updateName,
-                    label = { Text("Full Name *") },
-                    placeholder = { Text("Enter your full name") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                    enabled = !uiState.isSaving
-                )
+                // Form Card
+                item {
+                    StaggeredAnimatedItem(index = 0) {
+                        GlassmorphicCard(
+                            modifier = Modifier.fillMaxWidth(),
+                            cornerRadius = HmifTheme.cornerRadius.lg
+                        ) {
+                            Column(
+                                verticalArrangement = Arrangement.spacedBy(HmifTheme.spacing.md)
+                            ) {
+                                Text(
+                                    text = "Personal Information",
+                                    style = MaterialTheme.typography.titleSmall,
+                                    fontWeight = FontWeight.SemiBold
+                                )
 
-                // NIM
-                OutlinedTextField(
-                    value = uiState.nim,
-                    onValueChange = viewModel::updateNim,
-                    label = { Text("NIM *") },
-                    placeholder = { Text("e.g., 13520123") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                    enabled = !uiState.isSaving
-                )
+                                // Name
+                                StyledTextField(
+                                    value = uiState.name,
+                                    onValueChange = viewModel::updateName,
+                                    label = "Full Name",
+                                    placeholder = "Enter your full name",
+                                    icon = Icons.Default.Person,
+                                    iconColor = HmifBlue,
+                                    enabled = !uiState.isSaving,
+                                    isRequired = true
+                                )
 
-                // Angkatan
-                OutlinedTextField(
-                    value = uiState.angkatan,
-                    onValueChange = viewModel::updateAngkatan,
-                    label = { Text("Angkatan *") },
-                    placeholder = { Text("e.g., 2020") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                    enabled = !uiState.isSaving
-                )
+                                // NIM
+                                StyledTextField(
+                                    value = uiState.nim,
+                                    onValueChange = viewModel::updateNim,
+                                    label = "NIM",
+                                    placeholder = "e.g., 13520123",
+                                    icon = Icons.Default.Badge,
+                                    iconColor = HmifOrange,
+                                    enabled = !uiState.isSaving,
+                                    isRequired = true
+                                )
 
-                // Concentration
-                OutlinedTextField(
-                    value = uiState.concentration,
-                    onValueChange = viewModel::updateConcentration,
-                    label = { Text("Concentration") },
-                    placeholder = { Text("e.g., Software Engineering") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                    enabled = !uiState.isSaving
-                )
+                                // Angkatan
+                                StyledTextField(
+                                    value = uiState.angkatan,
+                                    onValueChange = viewModel::updateAngkatan,
+                                    label = "Angkatan",
+                                    placeholder = "e.g., 2020",
+                                    icon = Icons.Default.Numbers,
+                                    iconColor = GradientEnd,
+                                    enabled = !uiState.isSaving,
+                                    isRequired = true
+                                )
+                            }
+                        }
+                    }
+                }
 
-                // Tech Stack
-                OutlinedTextField(
-                    value = uiState.techStack,
-                    onValueChange = viewModel::updateTechStack,
-                    label = { Text("Tech Stack") },
-                    placeholder = { Text("e.g., Android, Kotlin, Flutter") },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(100.dp),
-                    enabled = !uiState.isSaving
-                )
+                // Academic Card
+                item {
+                    StaggeredAnimatedItem(index = 1) {
+                        GlassmorphicCard(
+                            modifier = Modifier.fillMaxWidth(),
+                            cornerRadius = HmifTheme.cornerRadius.lg
+                        ) {
+                            Column(
+                                verticalArrangement = Arrangement.spacedBy(HmifTheme.spacing.md)
+                            ) {
+                                Text(
+                                    text = "Academic & Skills",
+                                    style = MaterialTheme.typography.titleSmall,
+                                    fontWeight = FontWeight.SemiBold
+                                )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                                // Concentration
+                                StyledTextField(
+                                    value = uiState.concentration,
+                                    onValueChange = viewModel::updateConcentration,
+                                    label = "Concentration",
+                                    placeholder = "e.g., Software Engineering",
+                                    icon = Icons.Default.School,
+                                    iconColor = HmifBlue,
+                                    enabled = !uiState.isSaving
+                                )
 
-                // Save button
-                LoadingButton(
-                    onClick = viewModel::saveProfile,
-                    enabled = uiState.isValid && !uiState.isSaving,
-                    isLoading = uiState.isSaving,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("Save Changes")
+                                // Tech Stack
+                                StyledTextField(
+                                    value = uiState.techStack,
+                                    onValueChange = viewModel::updateTechStack,
+                                    label = "Tech Stack",
+                                    placeholder = "e.g., Android, Kotlin, Flutter",
+                                    icon = Icons.Default.Code,
+                                    iconColor = HmifOrange,
+                                    enabled = !uiState.isSaving,
+                                    singleLine = false,
+                                    minLines = 2
+                                )
+                            }
+                        }
+                    }
+                }
+
+                // Save Button
+                item {
+                    StaggeredAnimatedItem(index = 2) {
+                        GradientButton(
+                            text = "Save Changes",
+                            onClick = viewModel::saveProfile,
+                            enabled = uiState.isValid && !uiState.isSaving,
+                            isLoading = uiState.isSaving
+                        )
+                    }
+                }
+
+                // Bottom spacing
+                item {
+                    Spacer(modifier = Modifier.height(HmifTheme.spacing.huge))
                 }
             }
         }
+    }
+}
+
+// ════════════════════════════════════════════════════════════════
+// STYLED TEXT FIELD
+// ════════════════════════════════════════════════════════════════
+
+@Composable
+private fun StyledTextField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    label: String,
+    placeholder: String,
+    icon: ImageVector,
+    iconColor: Color,
+    enabled: Boolean = true,
+    isRequired: Boolean = false,
+    singleLine: Boolean = true,
+    minLines: Int = 1
+) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        label = { Text(if (isRequired) "$label *" else label) },
+        placeholder = { Text(placeholder) },
+        leadingIcon = {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = iconColor
+            )
+        },
+        modifier = Modifier.fillMaxWidth(),
+        singleLine = singleLine,
+        minLines = minLines,
+        enabled = enabled,
+        shape = RoundedCornerShape(HmifTheme.cornerRadius.md),
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = HmifBlue,
+            unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
+            focusedLabelColor = HmifBlue
+        )
+    )
+}
+
+// ════════════════════════════════════════════════════════════════
+// LOADING STATE
+// ════════════════════════════════════════════════════════════════
+
+@Composable
+private fun LoadingState(modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(HmifTheme.spacing.lg),
+        verticalArrangement = Arrangement.spacedBy(HmifTheme.spacing.lg)
+    ) {
+        SkeletonCard(modifier = Modifier.fillMaxWidth(), height = 300.dp)
+        SkeletonCard(modifier = Modifier.fillMaxWidth(), height = 200.dp)
+        SkeletonCard(modifier = Modifier.fillMaxWidth(), height = 56.dp)
     }
 }

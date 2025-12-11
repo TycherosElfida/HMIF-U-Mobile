@@ -1,7 +1,10 @@
 package com.example.hmifu_mobile.feature.events
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -9,9 +12,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CalendarMonth
@@ -20,38 +22,60 @@ import androidx.compose.material.icons.filled.People
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Videocam
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.example.hmifu_mobile.data.local.entity.EventCategory
 import com.example.hmifu_mobile.data.local.entity.EventEntity
 import com.example.hmifu_mobile.data.local.entity.EventStatus
+import com.example.hmifu_mobile.ui.components.EventBannerImage
+import com.example.hmifu_mobile.ui.components.GlassmorphicCard
+import com.example.hmifu_mobile.ui.components.GradientButton
+import com.example.hmifu_mobile.ui.components.SecondaryButton
+import com.example.hmifu_mobile.ui.components.SkeletonCard
+import com.example.hmifu_mobile.ui.components.StaggeredAnimatedItem
+import com.example.hmifu_mobile.ui.theme.Error
+import com.example.hmifu_mobile.ui.theme.GradientEnd
+import com.example.hmifu_mobile.ui.theme.GradientStart
+import com.example.hmifu_mobile.ui.theme.HmifBlue
+import com.example.hmifu_mobile.ui.theme.HmifOrange
+import com.example.hmifu_mobile.ui.theme.HmifTheme
+import com.example.hmifu_mobile.ui.theme.Success
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
 /**
- * Event detail screen.
+ * Event Detail Screen - Premium 2025 Design
+ *
+ * Features:
+ * - Hero image with gradient overlay
+ * - Glassmorphic details card
+ * - Status badges with colors
+ * - Gradient action buttons
+ * - Staggered animations
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EventDetailScreen(
-    viewModel: EventDetailViewModel = androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel(),
+    viewModel: EventDetailViewModel = hiltViewModel(),
     onNavigateBack: () -> Unit,
     onAddToCalendar: (EventEntity) -> Unit = {},
     onRegister: (EventEntity) -> Unit = {}
@@ -66,9 +90,13 @@ fun EventDetailScreen(
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.Transparent
+                )
             )
-        }
+        },
+        containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         event?.let { evt ->
             EventDetailContent(
@@ -78,19 +106,14 @@ fun EventDetailScreen(
                 modifier = Modifier.padding(padding)
             )
         } ?: run {
-            // Loading state
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text("Loading event...")
-            }
+            LoadingState(modifier = Modifier.padding(padding))
         }
     }
 }
+
+// ════════════════════════════════════════════════════════════════
+// EVENT DETAIL CONTENT
+// ════════════════════════════════════════════════════════════════
 
 @Composable
 private fun EventDetailContent(
@@ -102,202 +125,366 @@ private fun EventDetailContent(
     val status = EventStatus.fromEvent(event)
     val category = EventCategory.fromString(event.category)
 
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(16.dp)
+    LazyColumn(
+        modifier = modifier.fillMaxSize(),
+        contentPadding = PaddingValues(bottom = HmifTheme.spacing.huge)
     ) {
-        // Event Banner Image (if available)
-        if (!event.imageUrl.isNullOrBlank()) {
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(200.dp),
-                shape = MaterialTheme.shapes.medium
-            ) {
-                com.example.hmifu_mobile.ui.components.EventBannerImage(
-                    path = event.imageUrl,
-                    modifier = Modifier.fillMaxSize()
+        // Hero Image
+        item {
+            if (!event.imageUrl.isNullOrBlank()) {
+                HeroImage(imageUrl = event.imageUrl, title = event.title)
+            }
+        }
+
+        // Header with category and status
+        item {
+            StaggeredAnimatedItem(index = 0) {
+                EventHeader(
+                    title = event.title,
+                    category = category,
+                    status = status
                 )
             }
-            Spacer(modifier = Modifier.height(16.dp))
         }
 
-        // Category + Status header
+        // Details Card
+        item {
+            StaggeredAnimatedItem(index = 1) {
+                DetailsCard(event = event)
+            }
+        }
+
+        // Description
+        item {
+            StaggeredAnimatedItem(index = 2) {
+                DescriptionSection(description = event.description)
+            }
+        }
+
+        // Action Buttons
+        item {
+            StaggeredAnimatedItem(index = 3) {
+                ActionButtons(
+                    status = status,
+                    event = event,
+                    onAddToCalendar = onAddToCalendar,
+                    onRegister = onRegister
+                )
+            }
+        }
+    }
+}
+
+// ════════════════════════════════════════════════════════════════
+// HERO IMAGE
+// ════════════════════════════════════════════════════════════════
+
+@Composable
+private fun HeroImage(imageUrl: String, title: String) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(220.dp)
+    ) {
+        EventBannerImage(
+            path = imageUrl,
+            modifier = Modifier.fillMaxSize()
+        )
+
+        // Gradient overlay
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            Color.Transparent,
+                            Color.Black.copy(alpha = 0.7f)
+                        ),
+                        startY = 100f
+                    )
+                )
+        )
+    }
+}
+
+// ════════════════════════════════════════════════════════════════
+// EVENT HEADER
+// ════════════════════════════════════════════════════════════════
+
+@Composable
+private fun EventHeader(
+    title: String,
+    category: EventCategory,
+    status: EventStatus
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(HmifTheme.spacing.lg)
+    ) {
+        // Category + Status row
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = "${category.emoji} ${category.displayName}",
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.primary
-            )
-            Text(
-                text = status.name,
-                style = MaterialTheme.typography.labelLarge,
-                color = when (status) {
-                    EventStatus.UPCOMING -> MaterialTheme.colorScheme.primary
-                    EventStatus.ONGOING -> MaterialTheme.colorScheme.tertiary
-                    EventStatus.ENDED -> MaterialTheme.colorScheme.outline
-                },
-                fontWeight = FontWeight.Bold
-            )
+            CategoryBadge(category = category)
+            StatusBadge(status = status)
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(HmifTheme.spacing.md))
 
         // Title
         Text(
-            text = event.title,
+            text = title,
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold
         )
+    }
+}
 
-        Spacer(modifier = Modifier.height(24.dp))
+@Composable
+private fun CategoryBadge(category: EventCategory) {
+    val color = when (category) {
+        EventCategory.SEMINAR -> HmifBlue
+        EventCategory.WORKSHOP -> HmifOrange
+        EventCategory.COMPETITION -> HmifOrange
+        EventCategory.SOCIAL -> HmifBlue
+        EventCategory.MEETING -> GradientEnd
+        EventCategory.OTHER -> GradientEnd
+    }
 
-        // Details card
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceVariant
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(HmifTheme.cornerRadius.sm))
+            .background(color.copy(alpha = 0.15f))
+            .padding(horizontal = HmifTheme.spacing.md, vertical = HmifTheme.spacing.xs)
+    ) {
+        Text(
+            text = "${category.emoji} ${category.displayName}",
+            style = MaterialTheme.typography.labelMedium,
+            color = color,
+            fontWeight = FontWeight.Medium
+        )
+    }
+}
+
+@Composable
+private fun StatusBadge(status: EventStatus) {
+    val (bgColor, text) = when (status) {
+        EventStatus.UPCOMING -> HmifBlue to "Upcoming"
+        EventStatus.ONGOING -> Success to "🔴 Live Now"
+        EventStatus.ENDED -> MaterialTheme.colorScheme.surfaceContainerHighest to "Ended"
+    }
+    val textColor = if (status == EventStatus.ENDED)
+        MaterialTheme.colorScheme.onSurfaceVariant else Color.White
+
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(HmifTheme.cornerRadius.sm))
+            .background(bgColor)
+            .padding(horizontal = HmifTheme.spacing.md, vertical = HmifTheme.spacing.xs)
+    ) {
+        Text(
+            text = text,
+            style = MaterialTheme.typography.labelMedium,
+            color = textColor,
+            fontWeight = FontWeight.SemiBold
+        )
+    }
+}
+
+// ════════════════════════════════════════════════════════════════
+// DETAILS CARD
+// ════════════════════════════════════════════════════════════════
+
+@Composable
+private fun DetailsCard(event: EventEntity) {
+    GlassmorphicCard(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = HmifTheme.spacing.lg),
+        cornerRadius = HmifTheme.cornerRadius.lg
+    ) {
+        Column(verticalArrangement = Arrangement.spacedBy(HmifTheme.spacing.md)) {
+            DetailRow(
+                icon = Icons.Default.CalendarMonth,
+                label = "Date",
+                value = formatFullDate(event.startTime),
+                color = HmifBlue
             )
-        ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                // Date
-                DetailRow(
-                    icon = Icons.Default.CalendarMonth,
-                    label = "Date",
-                    value = formatFullDate(event.startTime)
+
+            DetailRow(
+                icon = Icons.Default.Schedule,
+                label = "Time",
+                value = formatTimeRange(event.startTime, event.endTime),
+                color = HmifOrange
+            )
+
+            DetailRow(
+                icon = if (event.isOnline) Icons.Default.Videocam else Icons.Default.LocationOn,
+                label = "Location",
+                value = if (event.isOnline) "🌐 Online Event" else event.location,
+                color = GradientEnd
+            )
+
+            if (event.isOnline && !event.meetingUrl.isNullOrBlank()) {
+                Text(
+                    text = event.meetingUrl,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = HmifBlue,
+                    modifier = Modifier.padding(start = 36.dp)
                 )
+            }
 
-                Spacer(modifier = Modifier.height(12.dp))
+            DetailRow(
+                icon = Icons.Default.Person,
+                label = "Organizer",
+                value = event.organizerName.ifBlank { "HMIF" },
+                color = GradientStart
+            )
 
-                // Time
+            event.maxParticipants?.let { max ->
+                val spotsLeft = max - event.currentParticipants
+                val isFull = spotsLeft <= 0
                 DetailRow(
-                    icon = Icons.Default.Schedule,
-                    label = "Time",
-                    value = formatTimeRange(event.startTime, event.endTime)
+                    icon = Icons.Default.People,
+                    label = "Participants",
+                    value = "${event.currentParticipants}/$max" +
+                            if (isFull) " (Full)" else " ($spotsLeft spots left)",
+                    color = if (isFull) Error else Success
                 )
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                // Location
-                DetailRow(
-                    icon = if (event.isOnline) Icons.Default.Videocam else Icons.Default.LocationOn,
-                    label = "Location",
-                    value = if (event.isOnline) "Online Event" else event.location
-                )
-
-                if (event.isOnline && !event.meetingUrl.isNullOrBlank()) {
-                    Text(
-                        text = event.meetingUrl,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.padding(start = 28.dp)
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                // Organizer
-                DetailRow(
-                    icon = Icons.Default.Person,
-                    label = "Organizer",
-                    value = event.organizerName.ifBlank { "HMIF" }
-                )
-
-                // Participants
-                event.maxParticipants?.let { max ->
-                    Spacer(modifier = Modifier.height(12.dp))
-                    DetailRow(
-                        icon = Icons.Default.People,
-                        label = "Participants",
-                        value = "${event.currentParticipants}/$max (${max - event.currentParticipants} spots left)"
-                    )
-                }
             }
         }
+    }
+}
 
-        Spacer(modifier = Modifier.height(24.dp))
+@Composable
+private fun DetailRow(
+    icon: ImageVector,
+    label: String,
+    value: String,
+    color: Color
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(HmifTheme.spacing.md)
+    ) {
+        Box(
+            modifier = Modifier
+                .size(36.dp)
+                .clip(RoundedCornerShape(HmifTheme.cornerRadius.sm))
+                .background(color.copy(alpha = 0.15f)),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                modifier = Modifier.size(20.dp),
+                tint = color
+            )
+        }
 
-        // Description
+        Column {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Text(
+                text = value,
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Medium
+            )
+        }
+    }
+}
+
+// ════════════════════════════════════════════════════════════════
+// DESCRIPTION SECTION
+// ════════════════════════════════════════════════════════════════
+
+@Composable
+private fun DescriptionSection(description: String) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(HmifTheme.spacing.lg)
+    ) {
         Text(
             text = "About this event",
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(HmifTheme.spacing.sm))
 
         Text(
-            text = event.description,
+            text = description,
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        // Action buttons
-        if (status != EventStatus.ENDED) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                OutlinedButton(
-                    onClick = onAddToCalendar,
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Icon(Icons.Default.CalendarMonth, contentDescription = null)
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("Add to Calendar")
-                }
-
-                if (status == EventStatus.UPCOMING) {
-                    Button(
-                        onClick = onRegister,
-                        modifier = Modifier.weight(1f),
-                        enabled = event.maxParticipants?.let { event.currentParticipants < it }
-                            ?: true
-                    ) {
-                        Text("Register")
-                    }
-                }
-            }
-        }
-
-        Spacer(modifier = Modifier.height(24.dp))
     }
 }
+
+// ════════════════════════════════════════════════════════════════
+// ACTION BUTTONS
+// ════════════════════════════════════════════════════════════════
 
 @Composable
-private fun DetailRow(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    label: String,
-    value: String
+private fun ActionButtons(
+    status: EventStatus,
+    event: EventEntity,
+    onAddToCalendar: () -> Unit,
+    onRegister: () -> Unit
 ) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Icon(
-            icon,
-            contentDescription = null,
-            modifier = Modifier.size(20.dp),
-            tint = MaterialTheme.colorScheme.primary
-        )
-        Spacer(modifier = Modifier.width(8.dp))
-        Column {
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.outline
-            )
-            Text(
-                text = value,
-                style = MaterialTheme.typography.bodyMedium
+    if (status == EventStatus.ENDED) return
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(HmifTheme.spacing.lg),
+        verticalArrangement = Arrangement.spacedBy(HmifTheme.spacing.md)
+    ) {
+        if (status == EventStatus.UPCOMING) {
+            val canRegister = event.maxParticipants?.let { event.currentParticipants < it } ?: true
+
+            GradientButton(
+                text = if (canRegister) "Register Now" else "Event Full",
+                onClick = onRegister,
+                enabled = canRegister
             )
         }
+
+        SecondaryButton(
+            text = "📅 Add to Calendar",
+            onClick = onAddToCalendar
+        )
     }
 }
+
+// ════════════════════════════════════════════════════════════════
+// LOADING STATE
+// ════════════════════════════════════════════════════════════════
+
+@Composable
+private fun LoadingState(modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(HmifTheme.spacing.lg),
+        verticalArrangement = Arrangement.spacedBy(HmifTheme.spacing.lg)
+    ) {
+        SkeletonCard(modifier = Modifier.fillMaxWidth(), height = 200.dp)
+        SkeletonCard(modifier = Modifier.fillMaxWidth(), height = 80.dp)
+        SkeletonCard(modifier = Modifier.fillMaxWidth(), height = 200.dp)
+    }
+}
+
+// ════════════════════════════════════════════════════════════════
+// UTILITIES
+// ════════════════════════════════════════════════════════════════
 
 private fun formatFullDate(timestamp: Long): String {
     return try {
