@@ -184,10 +184,13 @@ private fun MainScaffold(
     onLogout: () -> Unit,  // Kept for future use (e.g., logout from app bar)
     content: @Composable () -> Unit
 ) {
+    // Create list of bottom nav items with non-null assertion to avoid R8 issues
+    val navItems = listOf(Screen.Home, Screen.Events, Screen.Profile)
+    
     Scaffold(
         bottomBar = {
             NavigationBar {
-                Screen.bottomNavItems.forEach { screen ->
+                navItems.forEach { screen ->
                     NavigationBarItem(
                         icon = {
                             screen.icon?.let { Icon(it, contentDescription = screen.title) }
@@ -207,3 +210,4 @@ private fun MainScaffold(
 }
 
 // Placeholder removed - all screens now use real implementations
+
