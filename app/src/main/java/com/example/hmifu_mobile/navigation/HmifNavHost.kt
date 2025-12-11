@@ -4,74 +4,186 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.navigation.NavDestination.Companion.hierarchy
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.example.hmifu_mobile.feature.auth.AuthViewModel
+import com.example.hmifu_mobile.feature.auth.LoginScreen
+import com.example.hmifu_mobile.feature.auth.ProfileSetupScreen
+import com.example.hmifu_mobile.feature.auth.RegisterScreen
 
 /**
- * Main navigation host with bottom navigation bar.
+ * Main navigation host with authentication flow.
  */
 @Composable
 fun HmifNavHost(modifier: Modifier = Modifier) {
     val navController = rememberNavController()
-    val navBackStackEntry by navController.currentBackStackEntryAsState()
-    val currentDestination = navBackStackEntry?.destination
+    val authViewModel: AuthViewModel = hiltViewModel()
+    val authState by authViewModel.uiState.collectAsState()
 
+    // Determine start destination based on auth state
+    val startDestination = if (authState.isAuthenticated) {
+        Screen.Home.route
+    } else {
+        Screen.Login.route
+    }
+
+    NavHost(
+        navController = navController,
+        startDestination = startDestination,
+        modifier = modifier
+    ) {
+        // Auth flow (no bottom bar)
+        composable(Screen.Login.route) {
+            LoginScreen(
+                onNavigateToRegister = {
+                    navController.navigate(Screen.Register.route)
+                },
+                onLoginSuccess = {
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.Login.route) { inclusive = true }
+                    }
+                },
+                viewModel = authViewModel
+            )
+        }
+
+        composable(Screen.Register.route) {
+            RegisterScreen(
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
+                onRegisterSuccess = {
+                    navController.navigate(Screen.ProfileSetup.route) {
+                        popUpTo(Screen.Login.route) { inclusive = true }
+                    }
+                },
+                viewModel = authViewModel
+            )
+        }
+
+        composable(Screen.ProfileSetup.route) {
+            ProfileSetupScreen(
+                onProfileComplete = {
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.ProfileSetup.route) { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        // Main app flow (with bottom bar)
+        composable(Screen.Home.route) {
+            MainScaffold(
+                currentRoute = Screen.Home.route,
+                onNavigate = { route ->
+                    navController.navigate(route) {
+                        popUpTo(navController.graph.findStartDestination().id) {
+                            saveState = true
+                        }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                },
+                onLogout = {
+                    authViewModel.logout()
+                    navController.navigate(Screen.Login.route) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                }
+            ) {
+                PlaceholderScreen(title = "Home")
+            }
+        }
+
+        composable(Screen.Events.route) {
+            MainScaffold(
+                currentRoute = Screen.Events.route,
+                onNavigate = { route ->
+                    navController.navigate(route) {
+                        popUpTo(navController.graph.findStartDestination().id) {
+                            saveState = true
+                        }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                },
+                onLogout = {
+                    authViewModel.logout()
+                    navController.navigate(Screen.Login.route) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                }
+            ) {
+                PlaceholderScreen(title = "Events")
+            }
+        }
+
+        composable(Screen.Profile.route) {
+            MainScaffold(
+                currentRoute = Screen.Profile.route,
+                onNavigate = { route ->
+                    navController.navigate(route) {
+                        popUpTo(navController.graph.findStartDestination().id) {
+                            saveState = true
+                        }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                },
+                onLogout = {
+                    authViewModel.logout()
+                    navController.navigate(Screen.Login.route) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                }
+            ) {
+                PlaceholderScreen(title = "Profile")
+            }
+        }
+    }
+}
+
+/**
+ * Main scaffold with bottom navigation.
+ */
+@Composable
+private fun MainScaffold(
+    currentRoute: String,
+    onNavigate: (String) -> Unit,
+    onLogout: () -> Unit,
+    content: @Composable () -> Unit
+) {
     Scaffold(
-        modifier = modifier,
         bottomBar = {
             NavigationBar {
                 Screen.bottomNavItems.forEach { screen ->
                     NavigationBarItem(
-                        icon = { Icon(screen.icon, contentDescription = screen.title) },
+                        icon = {
+                            screen.icon?.let { Icon(it, contentDescription = screen.title) }
+                        },
                         label = { Text(screen.title) },
-                        selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true,
-                        onClick = {
-                            navController.navigate(screen.route) {
-                                // Pop up to the start destination of the graph to
-                                // avoid building up a large stack of destinations
-                                popUpTo(navController.graph.findStartDestination().id) {
-                                    saveState = true
-                                }
-                                // Avoid multiple copies of the same destination
-                                launchSingleTop = true
-                                // Restore state when reselecting a previously selected item
-                                restoreState = true
-                            }
-                        }
+                        selected = currentRoute == screen.route,
+                        onClick = { onNavigate(screen.route) }
                     )
                 }
             }
         }
     ) { innerPadding ->
-        NavHost(
-            navController = navController,
-            startDestination = Screen.Home.route,
-            modifier = Modifier.padding(innerPadding)
-        ) {
-            composable(Screen.Home.route) {
-                PlaceholderScreen(title = "Home")
-            }
-            composable(Screen.Events.route) {
-                PlaceholderScreen(title = "Events")
-            }
-            composable(Screen.Profile.route) {
-                PlaceholderScreen(title = "Profile")
-            }
-            composable(Screen.Admin.route) {
-                PlaceholderScreen(title = "Admin")
-            }
+        Box(modifier = Modifier.padding(innerPadding)) {
+            content()
         }
     }
 }
@@ -87,7 +199,7 @@ private fun PlaceholderScreen(title: String) {
     ) {
         Text(
             text = title,
-            style = androidx.compose.material3.MaterialTheme.typography.headlineMedium
+            style = MaterialTheme.typography.headlineMedium
         )
     }
 }

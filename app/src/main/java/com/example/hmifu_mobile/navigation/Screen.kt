@@ -8,13 +8,19 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.ui.graphics.vector.ImageVector
 
 /**
- * Sealed class representing bottom navigation destinations.
+ * Sealed class representing navigation destinations.
  */
 sealed class Screen(
     val route: String,
-    val title: String,
-    val icon: ImageVector
+    val title: String = "",
+    val icon: ImageVector? = null
 ) {
+    // Auth screens (no icon needed)
+    data object Login : Screen(route = "login", title = "Login")
+    data object Register : Screen(route = "register", title = "Register")
+    data object ProfileSetup : Screen(route = "profile_setup", title = "Profile Setup")
+
+    // Main screens (with bottom nav icons)
     data object Home : Screen(
         route = "home",
         title = "Home",
