@@ -5,7 +5,6 @@ import androidx.lifecycle.viewModelScope
 import com.example.hmifu_mobile.data.local.entity.AnnouncementCategory
 import com.example.hmifu_mobile.data.local.entity.AnnouncementEntity
 import com.example.hmifu_mobile.data.repository.AnnouncementRepository
-import com.example.hmifu_mobile.data.repository.UserProfile
 import com.example.hmifu_mobile.data.repository.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow

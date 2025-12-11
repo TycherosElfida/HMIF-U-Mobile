@@ -1,8 +1,11 @@
 package com.example.hmifu_mobile.feature.profile
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -11,33 +14,28 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
-import androidx.compose.material.icons.filled.CardMembership
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Poll
-import androidx.compose.material.icons.filled.QrCode
-import androidx.compose.material.icons.filled.School
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
+import androidx.compose.material.icons.rounded.CardMembership
+import androidx.compose.material.icons.rounded.ChevronRight
+import androidx.compose.material.icons.rounded.Poll
+import androidx.compose.material.icons.rounded.QrCode
+import androidx.compose.material.icons.rounded.School
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -46,13 +44,35 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.example.hmifu_mobile.data.repository.UserProfile
+import com.example.hmifu_mobile.ui.components.GlassmorphicCard
+import com.example.hmifu_mobile.ui.components.ProfileAvatarImage
+import com.example.hmifu_mobile.ui.components.ProfileSkeleton
+import com.example.hmifu_mobile.ui.components.SecondaryButton
+import com.example.hmifu_mobile.ui.components.StaggeredAnimatedItem
+import com.example.hmifu_mobile.ui.theme.Error
+import com.example.hmifu_mobile.ui.theme.GradientEnd
+import com.example.hmifu_mobile.ui.theme.GradientStart
+import com.example.hmifu_mobile.ui.theme.HmifBlue
+import com.example.hmifu_mobile.ui.theme.HmifOrange
+import com.example.hmifu_mobile.ui.theme.HmifPurple
+import com.example.hmifu_mobile.ui.theme.HmifTheme
 
 /**
- * Profile screen showing user information.
+ * Profile Screen - Premium 2025 Design
+ *
+ * Features:
+ * - Gradient header with avatar
+ * - Glassmorphic profile card
+ * - Action menu with icons
+ * - Profile info section
+ * - Staggered animations
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -101,18 +121,22 @@ fun ProfileScreen(
                 },
                 actions = {
                     IconButton(onClick = onSettings) {
-                        Icon(Icons.Default.Settings, contentDescription = "Settings")
+                        Icon(
+                            imageVector = Icons.Default.Settings,
+                            contentDescription = "Settings"
+                        )
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.Transparent
+                )
             )
-        }
+        },
+        containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         when {
             uiState.isLoading && uiState.profile == null -> {
-                // Shimmer loading skeleton
-                com.example.hmifu_mobile.ui.components.ProfileSkeleton(
-                    modifier = Modifier.padding(padding)
-                )
+                ProfileSkeleton(modifier = Modifier.padding(padding))
             }
 
             uiState.profile != null -> {
@@ -129,18 +153,15 @@ fun ProfileScreen(
             }
 
             else -> {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(padding),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text("Failed to load profile")
-                }
+                EmptyState()
             }
         }
     }
 }
+
+// ════════════════════════════════════════════════════════════════
+// PROFILE CONTENT
+// ════════════════════════════════════════════════════════════════
 
 @Composable
 private fun ProfileContent(
@@ -153,176 +174,315 @@ private fun ProfileContent(
     onLogout: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+    LazyColumn(
+        modifier = modifier.fillMaxSize(),
+        contentPadding = PaddingValues(HmifTheme.spacing.lg),
+        verticalArrangement = Arrangement.spacedBy(HmifTheme.spacing.lg)
     ) {
-        // Profile Avatar - Use ImageKit if photoUrl exists, otherwise show icon
-        Surface(
-            modifier = Modifier
-                .size(100.dp)
-                .clip(CircleShape),
-            color = MaterialTheme.colorScheme.primaryContainer
-        ) {
-            if (!profile.photoUrl.isNullOrBlank()) {
-                com.example.hmifu_mobile.ui.components.ProfileAvatarImage(
-                    path = profile.photoUrl,
-                    modifier = Modifier.fillMaxSize(),
-                    size = 100
+        // Profile Header Card
+        item {
+            StaggeredAnimatedItem(index = 0) {
+                ProfileHeaderCard(profile = profile, onEditProfile = onEditProfile)
+            }
+        }
+
+        // Quick Actions
+        item {
+            StaggeredAnimatedItem(index = 1) {
+                QuickActionsSection(
+                    onMemberCard = onMemberCard,
+                    onCertificates = onCertificates,
+                    onPolls = onPolls,
+                    onResources = onResources
                 )
-            } else {
-                Box(contentAlignment = Alignment.Center) {
-                    Icon(
-                        Icons.Default.Person,
-                        contentDescription = null,
-                        modifier = Modifier.size(48.dp),
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer
+            }
+        }
+
+        // Profile Info Card
+        item {
+            StaggeredAnimatedItem(index = 2) {
+                ProfileInfoCard(profile = profile)
+            }
+        }
+
+        // Logout Section
+        item {
+            StaggeredAnimatedItem(index = 3) {
+                LogoutSection(onLogout = onLogout)
+            }
+        }
+
+        // Bottom spacing
+        item {
+            Spacer(modifier = Modifier.height(HmifTheme.spacing.huge))
+        }
+    }
+}
+
+// ════════════════════════════════════════════════════════════════
+// PROFILE HEADER CARD
+// ════════════════════════════════════════════════════════════════
+
+@Composable
+private fun ProfileHeaderCard(
+    profile: UserProfile,
+    onEditProfile: () -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(HmifTheme.cornerRadius.xxl))
+            .background(
+                Brush.linearGradient(
+                    colors = listOf(GradientStart, GradientEnd)
+                )
+            )
+            .padding(HmifTheme.spacing.xl)
+    ) {
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            // Avatar
+            Box(
+                modifier = Modifier
+                    .size(100.dp)
+                    .clip(CircleShape)
+                    .background(Color.White.copy(alpha = 0.2f))
+                    .border(3.dp, Color.White.copy(alpha = 0.5f), CircleShape)
+            ) {
+                if (!profile.photoUrl.isNullOrBlank()) {
+                    ProfileAvatarImage(
+                        path = profile.photoUrl,
+                        modifier = Modifier.fillMaxSize(),
+                        size = 100
                     )
+                } else {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Person,
+                            contentDescription = null,
+                            modifier = Modifier.size(48.dp),
+                            tint = Color.White
+                        )
+                    }
                 }
             }
-        }
 
-        Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(HmifTheme.spacing.lg))
 
-        // Name
-        Text(
-            text = profile.name.ifBlank { "No Name" },
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold
-        )
-
-        // Email
-        Text(
-            text = profile.email,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-
-        // Role badge
-        if (profile.role != "member") {
-            Spacer(modifier = Modifier.height(8.dp))
-            Surface(
-                color = MaterialTheme.colorScheme.tertiaryContainer,
-                shape = MaterialTheme.shapes.small
-            ) {
-                Text(
-                    text = profile.role.uppercase(),
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onTertiaryContainer
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // Edit button
-        OutlinedButton(
-            onClick = onEditProfile,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Icon(Icons.Default.Edit, contentDescription = null)
-            Spacer(modifier = Modifier.width(8.dp))
-            Text("Edit Profile")
-        }
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // Member Card button
-        Button(
-            onClick = onMemberCard,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Icon(Icons.Default.QrCode, contentDescription = null)
-            Spacer(modifier = Modifier.width(8.dp))
-            Text("My Member Card")
-        }
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // Certificates button
-        Button(
-            onClick = onCertificates,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Icon(Icons.Default.CardMembership, contentDescription = null)
-            Spacer(modifier = Modifier.width(8.dp))
-            Text("My Certificates")
-        }
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // Polls button
-        Button(
-            onClick = onPolls,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Icon(Icons.Default.Poll, contentDescription = null)
-            Spacer(modifier = Modifier.width(8.dp))
-            Text("Polls & Voting")
-        }
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // Bank Soal button
-        Button(
-            onClick = onResources,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Icon(Icons.Default.School, contentDescription = null)
-            Spacer(modifier = Modifier.width(8.dp))
-            Text("Bank Soal")
-        }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // Profile info card
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceVariant
+            // Name
+            Text(
+                text = profile.name.ifBlank { "No Name" },
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+                color = Color.White
             )
-        ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                ProfileInfoRow(label = "NIM", value = profile.nim.ifBlank { "-" })
-                Spacer(modifier = Modifier.height(12.dp))
-                ProfileInfoRow(label = "Angkatan", value = profile.angkatan.ifBlank { "-" })
-                Spacer(modifier = Modifier.height(12.dp))
-                ProfileInfoRow(
-                    label = "Concentration",
-                    value = profile.concentration.ifBlank { "-" })
-                Spacer(modifier = Modifier.height(12.dp))
-                ProfileInfoRow(label = "Tech Stack", value = profile.techStack.ifBlank { "-" })
-            }
-        }
 
-        Spacer(modifier = Modifier.height(32.dp))
-
-        // Logout button
-        Button(
-            onClick = onLogout,
-            modifier = Modifier.fillMaxWidth(),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.error
+            // Email
+            Text(
+                text = profile.email,
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.White.copy(alpha = 0.8f)
             )
-        ) {
-            Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = null)
-            Spacer(modifier = Modifier.width(8.dp))
-            Text("Logout")
-        }
 
-        Spacer(modifier = Modifier.height(24.dp))
+            // Role badge
+            if (profile.role != "member") {
+                Spacer(modifier = Modifier.height(HmifTheme.spacing.sm))
+                RoleBadge(role = profile.role)
+            }
+
+            Spacer(modifier = Modifier.height(HmifTheme.spacing.lg))
+
+            // Edit button
+            SecondaryButton(
+                text = "✏️ Edit Profile",
+                onClick = onEditProfile
+            )
+        }
     }
 }
 
 @Composable
-private fun ProfileInfoRow(
-    label: String,
-    value: String
+private fun RoleBadge(role: String) {
+    val (bgColor, emoji) = when (role.lowercase()) {
+        "admin" -> HmifOrange to "👑"
+        "moderator" -> HmifPurple to "⚡"
+        "staff" -> HmifBlue to "🎯"
+        else -> Color.White.copy(alpha = 0.2f) to "👤"
+    }
+
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(HmifTheme.cornerRadius.sm))
+            .background(bgColor.copy(alpha = 0.3f))
+            .padding(horizontal = HmifTheme.spacing.md, vertical = HmifTheme.spacing.xs)
+    ) {
+        Text(
+            text = "$emoji ${role.replaceFirstChar { it.uppercase() }}",
+            style = MaterialTheme.typography.labelSmall,
+            fontWeight = FontWeight.Bold,
+            color = Color.White
+        )
+    }
+}
+
+// ════════════════════════════════════════════════════════════════
+// QUICK ACTIONS
+// ════════════════════════════════════════════════════════════════
+
+@Composable
+private fun QuickActionsSection(
+    onMemberCard: () -> Unit,
+    onCertificates: () -> Unit,
+    onPolls: () -> Unit,
+    onResources: () -> Unit
 ) {
+    GlassmorphicCard(
+        modifier = Modifier.fillMaxWidth(),
+        cornerRadius = HmifTheme.cornerRadius.lg
+    ) {
+        Column(verticalArrangement = Arrangement.spacedBy(0.dp)) {
+            ActionMenuItem(
+                icon = Icons.Rounded.QrCode,
+                title = "My Member Card",
+                subtitle = "Show your digital ID",
+                color = HmifBlue,
+                onClick = onMemberCard
+            )
+
+            ActionMenuItem(
+                icon = Icons.Rounded.CardMembership,
+                title = "My Certificates",
+                subtitle = "View earned certificates",
+                color = HmifOrange,
+                onClick = onCertificates
+            )
+
+            ActionMenuItem(
+                icon = Icons.Rounded.Poll,
+                title = "Polls & Voting",
+                subtitle = "Participate in organization polls",
+                color = HmifPurple,
+                onClick = onPolls
+            )
+
+            ActionMenuItem(
+                icon = Icons.Rounded.School,
+                title = "Bank Soal",
+                subtitle = "Academic resources",
+                color = GradientEnd,
+                onClick = onResources,
+                showDivider = false
+            )
+        }
+    }
+}
+
+@Composable
+private fun ActionMenuItem(
+    icon: ImageVector,
+    title: String,
+    subtitle: String,
+    color: Color,
+    onClick: () -> Unit,
+    showDivider: Boolean = true
+) {
+    Column {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(HmifTheme.cornerRadius.md))
+                .background(Color.Transparent)
+                .padding(HmifTheme.spacing.md),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(HmifTheme.spacing.md),
+                modifier = Modifier.weight(1f)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(44.dp)
+                        .clip(RoundedCornerShape(HmifTheme.cornerRadius.md))
+                        .background(color.copy(alpha = 0.15f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = null,
+                        tint = color,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+
+                Column {
+                    Text(
+                        text = title,
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Medium
+                    )
+                    Text(
+                        text = subtitle,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+
+            IconButton(onClick = onClick) {
+                Icon(
+                    imageVector = Icons.Rounded.ChevronRight,
+                    contentDescription = "Go to $title",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+
+        if (showDivider) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 68.dp)
+                    .height(1.dp)
+                    .background(MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+            )
+        }
+    }
+}
+
+// ════════════════════════════════════════════════════════════════
+// PROFILE INFO CARD
+// ════════════════════════════════════════════════════════════════
+
+@Composable
+private fun ProfileInfoCard(profile: UserProfile) {
+    GlassmorphicCard(
+        modifier = Modifier.fillMaxWidth(),
+        cornerRadius = HmifTheme.cornerRadius.lg
+    ) {
+        Column(verticalArrangement = Arrangement.spacedBy(HmifTheme.spacing.md)) {
+            Text(
+                text = "Profile Information",
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.SemiBold
+            )
+
+            ProfileInfoRow(label = "NIM", value = profile.nim.ifBlank { "-" })
+            ProfileInfoRow(label = "Angkatan", value = profile.angkatan.ifBlank { "-" })
+            ProfileInfoRow(label = "Concentration", value = profile.concentration.ifBlank { "-" })
+            ProfileInfoRow(label = "Tech Stack", value = profile.techStack.ifBlank { "-" })
+        }
+    }
+}
+
+@Composable
+private fun ProfileInfoRow(label: String, value: String) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween
@@ -337,5 +497,63 @@ private fun ProfileInfoRow(
             style = MaterialTheme.typography.bodyMedium,
             fontWeight = FontWeight.Medium
         )
+    }
+}
+
+// ════════════════════════════════════════════════════════════════
+// LOGOUT SECTION
+// ════════════════════════════════════════════════════════════════
+
+@Composable
+private fun LogoutSection(onLogout: () -> Unit) {
+    GlassmorphicCard(
+        modifier = Modifier.fillMaxWidth(),
+        cornerRadius = HmifTheme.cornerRadius.lg,
+        onClick = onLogout
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.Logout,
+                contentDescription = null,
+                tint = Error,
+                modifier = Modifier.size(20.dp)
+            )
+            Spacer(modifier = Modifier.width(HmifTheme.spacing.sm))
+            Text(
+                text = "Logout",
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.Medium,
+                color = Error
+            )
+        }
+    }
+}
+
+// ════════════════════════════════════════════════════════════════
+// EMPTY STATE
+// ════════════════════════════════════════════════════════════════
+
+@Composable
+private fun EmptyState() {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(
+                text = "😕",
+                style = MaterialTheme.typography.displayMedium
+            )
+            Spacer(modifier = Modifier.height(HmifTheme.spacing.md))
+            Text(
+                text = "Failed to load profile",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
     }
 }
