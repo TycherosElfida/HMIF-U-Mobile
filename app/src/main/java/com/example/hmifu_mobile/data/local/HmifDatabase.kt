@@ -3,6 +3,13 @@ package com.example.hmifu_mobile.data.local
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import com.example.hmifu_mobile.data.local.dao.AnnouncementDao
+import com.example.hmifu_mobile.data.local.dao.CertificateDao
+import com.example.hmifu_mobile.data.local.dao.EventDao
+import com.example.hmifu_mobile.data.local.dao.RegistrationDao
+import com.example.hmifu_mobile.data.local.dao.UserDao
+import com.example.hmifu_mobile.data.local.entity.AnnouncementEntity
+import com.example.hmifu_mobile.data.local.entity.CertificateEntity
+import com.example.hmifu_mobile.data.local.entity.EventEntity
 import com.example.hmifu_mobile.data.local.dao.EventDao
 import com.example.hmifu_mobile.data.local.dao.EventRegistrationDao
 import com.example.hmifu_mobile.data.local.dao.UserDao
@@ -18,17 +25,18 @@ import com.example.hmifu_mobile.data.local.entity.UserEntity
 @Database(
     entities = [
         UserEntity::class,
-        AnnouncementEntity::class,
         EventEntity::class,
-        EventRegistrationEntity::class
+        RegistrationEntity::class,
+        AnnouncementEntity::class,
+        CertificateEntity::class
     ],
-    version = 4,
+    version = 2, // Increment version for schema change
     exportSchema = false
 )
 abstract class HmifDatabase : RoomDatabase() {
     abstract fun userDao(): UserDao
-    abstract fun announcementDao(): AnnouncementDao
     abstract fun eventDao(): EventDao
-    abstract fun eventRegistrationDao(): EventRegistrationDao
+    abstract fun registrationDao(): RegistrationDao
+    abstract fun announcementDao(): AnnouncementDao
+    abstract fun certificateDao(): CertificateDao
 }
-
