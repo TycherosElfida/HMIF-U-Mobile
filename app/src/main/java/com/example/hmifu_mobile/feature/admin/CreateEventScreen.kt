@@ -255,7 +255,7 @@ private fun formatDateTime(timestamp: Long): String {
     return try {
         val sdf = SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault())
         sdf.format(Date(timestamp))
-    } catch (e: Exception) {
+    } catch (_: Exception) {
         "Not set"
     }
 }
