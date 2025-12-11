@@ -160,20 +160,28 @@ private fun ProfileContent(
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Profile Avatar
+        // Profile Avatar - Use ImageKit if photoUrl exists, otherwise show icon
         Surface(
             modifier = Modifier
                 .size(100.dp)
                 .clip(CircleShape),
             color = MaterialTheme.colorScheme.primaryContainer
         ) {
-            Box(contentAlignment = Alignment.Center) {
-                Icon(
-                    Icons.Default.Person,
-                    contentDescription = null,
-                    modifier = Modifier.size(48.dp),
-                    tint = MaterialTheme.colorScheme.onPrimaryContainer
+            if (!profile.photoUrl.isNullOrBlank()) {
+                com.example.hmifu_mobile.ui.components.ProfileAvatarImage(
+                    path = profile.photoUrl,
+                    modifier = Modifier.fillMaxSize(),
+                    size = 100
                 )
+            } else {
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(
+                        Icons.Default.Person,
+                        contentDescription = null,
+                        modifier = Modifier.size(48.dp),
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                }
             }
         }
 

@@ -31,10 +31,10 @@ class ImageKitRepository @Inject constructor() {
         val urlBuilder = ImageKit.getInstance()
             .url(path = path)
             .quality(quality)
-        
+
         width?.let { urlBuilder.width(it.toInt()) }
         height?.let { urlBuilder.height(it.toInt()) }
-        
+
         return urlBuilder.create()
     }
 

@@ -108,6 +108,22 @@ private fun EventDetailContent(
             .verticalScroll(rememberScrollState())
             .padding(16.dp)
     ) {
+        // Event Banner Image (if available)
+        if (!event.imageUrl.isNullOrBlank()) {
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp),
+                shape = MaterialTheme.shapes.medium
+            ) {
+                com.example.hmifu_mobile.ui.components.EventBannerImage(
+                    path = event.imageUrl,
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+        }
+
         // Category + Status header
         Row(
             modifier = Modifier.fillMaxWidth(),

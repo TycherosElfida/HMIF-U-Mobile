@@ -226,6 +226,26 @@ private fun EventCard(
         Column(
             modifier = Modifier.padding(16.dp)
         ) {
+            // Event thumbnail (if available)
+            if (!event.imageUrl.isNullOrBlank()) {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(120.dp),
+                    shape = MaterialTheme.shapes.small
+                ) {
+                    com.example.hmifu_mobile.ui.components.ImageKitImageWithAspectRatio(
+                        path = event.imageUrl,
+                        contentDescription = "Event image for ${event.title}",
+                        modifier = Modifier.fillMaxSize(),
+                        height = 120f,
+                        aspectRatioWidth = 16,
+                        aspectRatioHeight = 9
+                    )
+                }
+                Spacer(modifier = Modifier.height(12.dp))
+            }
+
             // Header row
             Row(
                 modifier = Modifier.fillMaxWidth(),
