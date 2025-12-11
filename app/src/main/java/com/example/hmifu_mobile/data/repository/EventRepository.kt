@@ -75,7 +75,8 @@ class EventRepository @Inject constructor(
                                 endTime = doc.getLong("endTime") ?: 0L,
                                 registrationDeadline = doc.getLong("registrationDeadline"),
                                 maxParticipants = doc.getLong("maxParticipants")?.toInt(),
-                                currentParticipants = doc.getLong("currentParticipants")?.toInt() ?: 0,
+                                currentParticipants = doc.getLong("currentParticipants")?.toInt()
+                                    ?: 0,
                                 organizerId = doc.getString("organizerId") ?: "",
                                 organizerName = doc.getString("organizerName") ?: "",
                                 imageUrl = doc.getString("imageUrl"),

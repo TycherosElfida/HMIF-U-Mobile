@@ -234,7 +234,11 @@ private fun EventCard(
             ) {
                 // Category + emoji
                 Text(
-                    text = "${EventCategory.fromString(event.category).emoji} ${EventCategory.fromString(event.category).displayName}",
+                    text = "${EventCategory.fromString(event.category).emoji} ${
+                        EventCategory.fromString(
+                            event.category
+                        ).displayName
+                    }",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.primary
                 )

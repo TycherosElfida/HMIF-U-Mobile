@@ -16,10 +16,16 @@ interface UserDao {
     fun observeUser(uid: String): Flow<UserEntity?>
 
     @Query("SELECT * FROM users WHERE uid = :uid")
+    fun observeById(uid: String): Flow<UserEntity?>
+
+    @Query("SELECT * FROM users WHERE uid = :uid")
     suspend fun getUser(uid: String): UserEntity?
 
     @Upsert
     suspend fun upsertUser(user: UserEntity)
+
+    @Upsert
+    suspend fun upsert(user: UserEntity)
 
     @Query("DELETE FROM users WHERE uid = :uid")
     suspend fun deleteUser(uid: String)
@@ -27,3 +33,4 @@ interface UserDao {
     @Query("DELETE FROM users")
     suspend fun clearAll()
 }
+

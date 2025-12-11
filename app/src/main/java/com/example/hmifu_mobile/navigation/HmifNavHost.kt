@@ -154,8 +154,24 @@ fun HmifNavHost(modifier: Modifier = Modifier) {
                     }
                 }
             ) {
-                PlaceholderScreen(title = "Profile")
+                com.example.hmifu_mobile.feature.profile.ProfileScreen(
+                    onEditProfile = { /* TODO: Navigate to edit profile */ },
+                    onSettings = { navController.navigate("settings") },
+                    onLogout = {
+                        authViewModel.logout()
+                        navController.navigate(Screen.Login.route) {
+                            popUpTo(0) { inclusive = true }
+                        }
+                    }
+                )
             }
+        }
+
+        // Settings screen (no bottom bar)
+        composable("settings") {
+            com.example.hmifu_mobile.feature.settings.SettingsScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
         }
     }
 }

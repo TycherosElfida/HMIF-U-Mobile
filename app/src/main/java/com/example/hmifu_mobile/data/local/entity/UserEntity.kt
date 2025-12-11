@@ -10,15 +10,17 @@ import androidx.room.PrimaryKey
 @Entity(tableName = "users")
 data class UserEntity(
     @PrimaryKey val uid: String,
-    val nim: String,
-    val name: String,
-    val email: String,
-    val angkatan: Int,
+    val email: String = "",
+    val name: String = "",
+    val nim: String = "",
+    val angkatan: String = "",
     val concentration: String = "",
-    val roles: String = "[\"member\"]", // JSON array stored as String
-    val techStack: String = "[]",       // JSON array stored as String
+    val techStack: String = "",
+    val photoUrl: String? = null,
+    val role: String = "member",
     val points: Int = 0,
     val membershipStatus: String = "active",
-    val profilePhotoUrl: String? = null,
+    val createdAt: Long = System.currentTimeMillis(),
+    val updatedAt: Long = System.currentTimeMillis(),
     val syncedAt: Long = System.currentTimeMillis()
 )

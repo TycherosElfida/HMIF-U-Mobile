@@ -248,7 +248,8 @@ private fun EventDetailContent(
                     Button(
                         onClick = { /* TODO: Register */ },
                         modifier = Modifier.weight(1f),
-                        enabled = event.maxParticipants?.let { event.currentParticipants < it } ?: true
+                        enabled = event.maxParticipants?.let { event.currentParticipants < it }
+                            ?: true
                     ) {
                         Text("Register")
                     }
