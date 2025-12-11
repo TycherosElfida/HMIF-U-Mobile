@@ -136,6 +136,18 @@ fun HmifNavHost(modifier: Modifier = Modifier) {
                 onNavigateBack = { navController.popBackStack() }
             )
         }
+
+        composable("polls") {
+            com.example.hmifu_mobile.feature.polls.PollsScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable("resources") {
+            com.example.hmifu_mobile.feature.resources.ResourcesScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
         composable(Screen.Profile.route) {
             MainScaffold(
                 currentRoute = Screen.Profile.route,
@@ -154,6 +166,8 @@ fun HmifNavHost(modifier: Modifier = Modifier) {
                     onSettings = { navController.navigate("settings") },
                     onMemberCard = { navController.navigate("member_card") },
                     onCertificates = { navController.navigate("certificates") },
+                    onPolls = { navController.navigate("polls") },
+                    onResources = { navController.navigate("resources") },
                     onLogout = {
                         authViewModel.logout()
                         navController.navigate(Screen.Login.route) {

@@ -19,7 +19,9 @@ import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.CardMembership
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Poll
 import androidx.compose.material.icons.filled.QrCode
+import androidx.compose.material.icons.filled.School
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -59,6 +61,8 @@ fun ProfileScreen(
     onSettings: () -> Unit = {},
     onMemberCard: () -> Unit = {},
     onCertificates: () -> Unit = {},
+    onPolls: () -> Unit = {},
+    onResources: () -> Unit = {},
     onLogout: () -> Unit,
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
@@ -117,6 +121,8 @@ fun ProfileScreen(
                     onEditProfile = onEditProfile,
                     onMemberCard = onMemberCard,
                     onCertificates = onCertificates,
+                    onPolls = onPolls,
+                    onResources = onResources,
                     onLogout = viewModel::logout,
                     modifier = Modifier.padding(padding)
                 )
@@ -142,6 +148,8 @@ private fun ProfileContent(
     onEditProfile: () -> Unit,
     onMemberCard: () -> Unit,
     onCertificates: () -> Unit,
+    onPolls: () -> Unit,
+    onResources: () -> Unit,
     onLogout: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -235,6 +243,30 @@ private fun ProfileContent(
             Icon(Icons.Default.CardMembership, contentDescription = null)
             Spacer(modifier = Modifier.width(8.dp))
             Text("My Certificates")
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Polls button
+        Button(
+            onClick = onPolls,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Icon(Icons.Default.Poll, contentDescription = null)
+            Spacer(modifier = Modifier.width(8.dp))
+            Text("Polls & Voting")
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Bank Soal button
+        Button(
+            onClick = onResources,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Icon(Icons.Default.School, contentDescription = null)
+            Spacer(modifier = Modifier.width(8.dp))
+            Text("Bank Soal")
         }
 
         Spacer(modifier = Modifier.height(24.dp))

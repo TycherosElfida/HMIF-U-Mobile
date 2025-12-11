@@ -6,11 +6,15 @@ import com.example.hmifu_mobile.data.local.dao.AnnouncementDao
 import com.example.hmifu_mobile.data.local.dao.CertificateDao
 import com.example.hmifu_mobile.data.local.dao.EventDao
 import com.example.hmifu_mobile.data.local.dao.EventRegistrationDao
+import com.example.hmifu_mobile.data.local.dao.PollDao
+import com.example.hmifu_mobile.data.local.dao.ResourceDao
 import com.example.hmifu_mobile.data.local.dao.UserDao
 import com.example.hmifu_mobile.data.local.entity.AnnouncementEntity
 import com.example.hmifu_mobile.data.local.entity.CertificateEntity
 import com.example.hmifu_mobile.data.local.entity.EventEntity
 import com.example.hmifu_mobile.data.local.entity.EventRegistrationEntity
+import com.example.hmifu_mobile.data.local.entity.PollEntity
+import com.example.hmifu_mobile.data.local.entity.ResourceEntity
 import com.example.hmifu_mobile.data.local.entity.UserEntity
 
 /**
@@ -23,9 +27,11 @@ import com.example.hmifu_mobile.data.local.entity.UserEntity
         EventEntity::class,
         EventRegistrationEntity::class,
         AnnouncementEntity::class,
-        CertificateEntity::class
+        CertificateEntity::class,
+        PollEntity::class,
+        ResourceEntity::class
     ],
-    version = 2, // Increment version for schema change
+    version = 4, // Increment version for schema change
     exportSchema = false
 )
 abstract class HmifDatabase : RoomDatabase() {
@@ -34,4 +40,6 @@ abstract class HmifDatabase : RoomDatabase() {
     abstract fun eventRegistrationDao(): EventRegistrationDao
     abstract fun announcementDao(): AnnouncementDao
     abstract fun certificateDao(): CertificateDao
+    abstract fun pollDao(): PollDao
+    abstract fun resourceDao(): ResourceDao
 }
