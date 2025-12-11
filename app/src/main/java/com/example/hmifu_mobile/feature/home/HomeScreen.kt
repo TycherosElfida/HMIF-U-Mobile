@@ -15,12 +15,12 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
@@ -108,11 +108,9 @@ fun HomeScreen(
             // Content
             when {
                 uiState.isLoading && uiState.announcements.isEmpty() -> {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator()
+                    // Shimmer loading skeletons
+                    com.example.hmifu_mobile.ui.components.LoadingSkeletonList(itemCount = 4) {
+                        com.example.hmifu_mobile.ui.components.AnnouncementCardSkeleton()
                     }
                 }
 
@@ -176,8 +174,10 @@ private fun AnnouncementFeed(announcements: List<AnnouncementEntity>) {
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        items(announcements, key = { it.id }) { announcement ->
-            AnnouncementCard(announcement = announcement)
+        itemsIndexed(announcements, key = { _, it -> it.id }) { index, announcement ->
+            com.example.hmifu_mobile.ui.components.StaggeredAnimatedItem(index = index) {
+                AnnouncementCard(announcement = announcement)
+            }
         }
     }
 }

@@ -23,7 +23,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -102,14 +101,10 @@ fun ProfileScreen(
     ) { padding ->
         when {
             uiState.isLoading && uiState.profile == null -> {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(padding),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator()
-                }
+                // Shimmer loading skeleton
+                com.example.hmifu_mobile.ui.components.ProfileSkeleton(
+                    modifier = Modifier.padding(padding)
+                )
             }
 
             uiState.profile != null -> {

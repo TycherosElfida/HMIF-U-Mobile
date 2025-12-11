@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.LocationOn
@@ -22,7 +23,6 @@ import androidx.compose.material.icons.filled.People
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
@@ -116,11 +116,9 @@ fun EventsScreen(
             // Content
             when {
                 uiState.isLoading && uiState.events.isEmpty() -> {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator()
+                    // Shimmer loading skeletons
+                    com.example.hmifu_mobile.ui.components.LoadingSkeletonList(itemCount = 4) {
+                        com.example.hmifu_mobile.ui.components.EventCardSkeleton()
                     }
                 }
 
@@ -190,11 +188,13 @@ private fun EventsList(
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        items(events, key = { it.id }) { event ->
-            EventCard(
-                event = event,
-                onClick = { onEventClick(event.id) }
-            )
+        itemsIndexed(events, key = { _, it -> it.id }) { index, event ->
+            com.example.hmifu_mobile.ui.components.StaggeredAnimatedItem(index = index) {
+                EventCard(
+                    event = event,
+                    onClick = { onEventClick(event.id) }
+                )
+            }
         }
     }
 }
