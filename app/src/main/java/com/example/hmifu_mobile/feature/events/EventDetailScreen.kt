@@ -58,7 +58,8 @@ fun EventDetailScreen(
     eventId: String,
     eventRepository: EventRepository,
     onNavigateBack: () -> Unit,
-    onAddToCalendar: (EventEntity) -> Unit = {}
+    onAddToCalendar: (EventEntity) -> Unit = {},
+    onRegister: (EventEntity) -> Unit = {}
 ) {
     var event by remember { mutableStateOf<EventEntity?>(null) }
 
@@ -82,6 +83,7 @@ fun EventDetailScreen(
             EventDetailContent(
                 event = evt,
                 onAddToCalendar = { onAddToCalendar(evt) },
+                onRegister = { onRegister(evt) },
                 modifier = Modifier.padding(padding)
             )
         } ?: run {
@@ -103,6 +105,7 @@ fun EventDetailScreen(
 private fun EventDetailContent(
     event: EventEntity,
     onAddToCalendar: () -> Unit,
+    onRegister: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val status = EventStatus.fromEvent(event)
@@ -246,7 +249,7 @@ private fun EventDetailContent(
 
                 if (status == EventStatus.UPCOMING) {
                     Button(
-                        onClick = { /* TODO: Register */ },
+                        onClick = onRegister,
                         modifier = Modifier.weight(1f),
                         enabled = event.maxParticipants?.let { event.currentParticipants < it }
                             ?: true

@@ -28,6 +28,7 @@ data class ProfileUiState(
 /**
  * ViewModel for Profile screen.
  */
+@Suppress("unused")  // Public API methods kept for future use
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
     private val userRepository: UserRepository,

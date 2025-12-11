@@ -32,6 +32,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -41,20 +42,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-
-/**
- * Profile setup state.
- */
-data class ProfileSetupState(
-    val name: String = "",
-    val nim: String = "",
-    val angkatan: String = "",
-    val concentration: String = "",
-    val techStack: String = "",
-    val isLoading: Boolean = false,
-    val errorMessage: String? = null,
-    val isComplete: Boolean = false
-)
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 
 /**
  * Profile setup screen for new users.
@@ -62,11 +50,13 @@ data class ProfileSetupState(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileSetupScreen(
-    onProfileComplete: () -> Unit
+    onProfileComplete: () -> Unit,
+    viewModel: ProfileSetupViewModel = hiltViewModel()
 ) {
-    var state by remember { mutableStateOf(ProfileSetupState()) }
+    val uiState by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     var concentrationExpanded by remember { mutableStateOf(false) }
+    var angkatanExpanded by remember { mutableStateOf(false) }
 
     val concentrationOptions = listOf(
         "Software Engineering",
@@ -77,20 +67,19 @@ fun ProfileSetupScreen(
     )
 
     val angkatanOptions = (2020..2025).map { it.toString() }
-    var angkatanExpanded by remember { mutableStateOf(false) }
 
     // Navigate on completion
-    LaunchedEffect(state.isComplete) {
-        if (state.isComplete) {
+    LaunchedEffect(uiState.isComplete) {
+        if (uiState.isComplete) {
             onProfileComplete()
         }
     }
 
     // Show error snackbar
-    LaunchedEffect(state.errorMessage) {
-        state.errorMessage?.let {
+    LaunchedEffect(uiState.errorMessage) {
+        uiState.errorMessage?.let {
             snackbarHostState.showSnackbar(it)
-            state = state.copy(errorMessage = null)
+            viewModel.clearError()
         }
     }
 
@@ -125,8 +114,8 @@ fun ProfileSetupScreen(
 
             // Full Name
             OutlinedTextField(
-                value = state.name,
-                onValueChange = { state = state.copy(name = it) },
+                value = uiState.name,
+                onValueChange = viewModel::updateName,
                 label = { Text("Full Name") },
                 leadingIcon = { Icon(Icons.Default.Person, contentDescription = null) },
                 placeholder = { Text("John Doe") },
@@ -138,8 +127,8 @@ fun ProfileSetupScreen(
 
             // NIM
             OutlinedTextField(
-                value = state.nim,
-                onValueChange = { state = state.copy(nim = it) },
+                value = uiState.nim,
+                onValueChange = viewModel::updateNim,
                 label = { Text("NIM (Student ID)") },
                 leadingIcon = { Icon(Icons.Default.Badge, contentDescription = null) },
                 placeholder = { Text("2024001234") },
@@ -156,7 +145,7 @@ fun ProfileSetupScreen(
                 onExpandedChange = { angkatanExpanded = it }
             ) {
                 OutlinedTextField(
-                    value = state.angkatan,
+                    value = uiState.angkatan,
                     onValueChange = {},
                     readOnly = true,
                     label = { Text("Batch Year (Angkatan)") },
@@ -174,7 +163,7 @@ fun ProfileSetupScreen(
                         DropdownMenuItem(
                             text = { Text(option) },
                             onClick = {
-                                state = state.copy(angkatan = option)
+                                viewModel.updateAngkatan(option)
                                 angkatanExpanded = false
                             }
                         )
@@ -190,7 +179,7 @@ fun ProfileSetupScreen(
                 onExpandedChange = { concentrationExpanded = it }
             ) {
                 OutlinedTextField(
-                    value = state.concentration,
+                    value = uiState.concentration,
                     onValueChange = {},
                     readOnly = true,
                     label = { Text("Concentration") },
@@ -208,7 +197,7 @@ fun ProfileSetupScreen(
                         DropdownMenuItem(
                             text = { Text(option) },
                             onClick = {
-                                state = state.copy(concentration = option)
+                                viewModel.updateConcentration(option)
                                 concentrationExpanded = false
                             }
                         )
@@ -220,8 +209,8 @@ fun ProfileSetupScreen(
 
             // Tech Stack (optional)
             OutlinedTextField(
-                value = state.techStack,
-                onValueChange = { state = state.copy(techStack = it) },
+                value = uiState.techStack,
+                onValueChange = viewModel::updateTechStack,
                 label = { Text("Tech Stack (Optional)") },
                 leadingIcon = { Icon(Icons.Default.Code, contentDescription = null) },
                 placeholder = { Text("Kotlin, Python, React...") },
@@ -234,33 +223,13 @@ fun ProfileSetupScreen(
 
             // Save button
             Button(
-                onClick = {
-                    // Validate required fields
-                    when {
-                        state.name.isBlank() -> {
-                            state = state.copy(errorMessage = "Name is required")
-                        }
-
-                        state.nim.isBlank() -> {
-                            state = state.copy(errorMessage = "NIM is required")
-                        }
-
-                        state.angkatan.isBlank() -> {
-                            state = state.copy(errorMessage = "Angkatan is required")
-                        }
-
-                        else -> {
-                            // TODO: Save profile to Firestore
-                            state = state.copy(isComplete = true)
-                        }
-                    }
-                },
-                enabled = !state.isLoading,
+                onClick = viewModel::saveProfile,
+                enabled = !uiState.isLoading,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp)
             ) {
-                if (state.isLoading) {
+                if (uiState.isLoading) {
                     CircularProgressIndicator(
                         modifier = Modifier.size(24.dp),
                         color = MaterialTheme.colorScheme.onPrimary
@@ -274,3 +243,4 @@ fun ProfileSetupScreen(
         }
     }
 }
+

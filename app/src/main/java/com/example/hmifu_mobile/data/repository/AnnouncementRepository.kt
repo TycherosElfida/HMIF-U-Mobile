@@ -18,10 +18,11 @@ import javax.inject.Singleton
  * Repository for Announcement operations.
  * Implements offline-first pattern: UI observes Room, network syncs to Room.
  */
+@Suppress("unused")  // Public API methods kept for future use
 @Singleton
 class AnnouncementRepository @Inject constructor(
     private val announcementDao: AnnouncementDao,
-    private val firestore: FirebaseFirestore
+    firestore: FirebaseFirestore
 ) {
     private val collection = firestore.collection("announcements")
     private val ioScope = CoroutineScope(Dispatchers.IO)

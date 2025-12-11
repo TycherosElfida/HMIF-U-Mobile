@@ -21,6 +21,7 @@ sealed class AuthResult<out T> {
 /**
  * Repository for Firebase Authentication operations.
  */
+@Suppress("unused")  // Public API properties kept for future use
 @Singleton
 class AuthRepository @Inject constructor(
     private val firebaseAuth: FirebaseAuth

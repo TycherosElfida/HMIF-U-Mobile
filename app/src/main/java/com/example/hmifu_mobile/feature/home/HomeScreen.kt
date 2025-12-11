@@ -54,6 +54,7 @@ import java.util.Locale
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
+    onNotificationsClick: () -> Unit = {},
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -86,7 +87,7 @@ fun HomeScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = { /* TODO: Notifications */ }) {
+                    IconButton(onClick = onNotificationsClick) {
                         Icon(Icons.Default.Notifications, contentDescription = "Notifications")
                     }
                 }

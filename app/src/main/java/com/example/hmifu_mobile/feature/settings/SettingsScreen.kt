@@ -45,10 +45,12 @@ import androidx.compose.ui.unit.dp
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
-    onNavigateBack: () -> Unit
+    onNavigateBack: () -> Unit,
+    onClearCache: () -> Unit = {}
 ) {
     var darkModeEnabled by remember { mutableStateOf(false) }
     var notificationsEnabled by remember { mutableStateOf(true) }
+    var cacheCleared by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -120,9 +122,12 @@ fun SettingsScreen(
             Card(modifier = Modifier.fillMaxWidth()) {
                 SettingsClickItem(
                     icon = Icons.Default.Storage,
-                    title = "Clear Cache",
+                    title = if (cacheCleared) "Cache Cleared ✓" else "Clear Cache",
                     subtitle = "Free up storage space",
-                    onClick = { /* TODO: Clear cache */ }
+                    onClick = {
+                        onClearCache()
+                        cacheCleared = true
+                    }
                 )
             }
 

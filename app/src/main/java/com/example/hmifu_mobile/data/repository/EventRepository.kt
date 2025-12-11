@@ -18,6 +18,7 @@ import javax.inject.Singleton
  * Repository for Event operations.
  * Implements offline-first pattern: UI observes Room, network syncs to Room.
  */
+@Suppress("unused")  // Public API methods kept for future use
 @Singleton
 class EventRepository @Inject constructor(
     private val eventDao: EventDao,

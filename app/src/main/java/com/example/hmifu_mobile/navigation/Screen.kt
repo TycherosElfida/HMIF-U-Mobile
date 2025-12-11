@@ -10,6 +10,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 /**
  * Sealed class representing navigation destinations.
  */
+@Suppress("unused")  // Admin screen reserved for future use
 sealed class Screen(
     val route: String,
     val title: String = "",
@@ -49,3 +50,4 @@ sealed class Screen(
         val bottomNavItems = listOf(Home, Events, Profile)
     }
 }
+

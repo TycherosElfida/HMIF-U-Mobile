@@ -4,8 +4,6 @@ import com.example.hmifu_mobile.data.local.dao.UserDao
 import com.example.hmifu_mobile.data.local.entity.UserEntity
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
@@ -29,14 +27,14 @@ data class UserProfile(
 /**
  * Repository for User profile operations.
  */
+@Suppress("unused")  // Public API methods kept for future use
 @Singleton
 class UserRepository @Inject constructor(
     private val userDao: UserDao,
     private val firebaseAuth: FirebaseAuth,
-    private val firestore: FirebaseFirestore
+    firestore: FirebaseFirestore
 ) {
     private val usersCollection = firestore.collection("users")
-    private val ioScope = CoroutineScope(Dispatchers.IO)
 
     /**
      * Get current user's UID.
