@@ -31,7 +31,7 @@ import com.example.hmifu_mobile.data.local.entity.UserEntity
         PollEntity::class,
         ResourceEntity::class
     ],
-    version = 4, // Increment version for schema change
+    version = 5, // Bumped for schema changes - ImageKit migration
     exportSchema = false
 )
 abstract class HmifDatabase : RoomDatabase() {
