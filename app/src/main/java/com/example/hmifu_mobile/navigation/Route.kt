@@ -24,6 +24,18 @@ sealed interface Route {
      */
     @Serializable
     data object Main : Route
+
+    /**
+     * Add Event screen route (admin only)
+     */
+    @Serializable
+    data object AddEvent : Route
+
+    /**
+     * Event Detail screen route
+     */
+    @Serializable
+    data class EventDetail(val eventId: String) : Route
 }
 
 /**

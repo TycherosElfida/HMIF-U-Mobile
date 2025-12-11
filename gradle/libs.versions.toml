@@ -31,6 +31,7 @@ kotlinxSerializationCore = "1.9.0"
 
 # OTHER
 junit = "4.13.2"
+coil = "2.6.0"
 
 # Nav 3
 nav3Core = "1.0.0"
@@ -101,6 +102,9 @@ firebase-messaging = { group = "com.google.firebase", name = "firebase-messaging
 androidx-navigation-common-ktx = { group = "androidx.navigation", name = "navigation-common-ktx", version.ref = "navigationCommonKtx" }
 androidx-material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "material3" }
 mockito-kotlin = { module = "org.mockito.kotlin:mockito-kotlin", version.ref = "mockitoKotlin" }
+
+# IMAGE LOADING
+coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coil" }
 
 [plugins]
 # CORE PLUGINS

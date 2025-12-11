@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.hmifu_mobile.model.AuthState
 import com.example.hmifu_mobile.model.LoginUiState
+import com.example.hmifu_mobile.model.UserSession
 import com.example.hmifu_mobile.repository.AuthRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,7 +21,8 @@ import javax.inject.Inject
  */
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
+    private val userSession: UserSession
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(LoginUiState())
@@ -89,6 +91,7 @@ class LoginViewModel @Inject constructor(
             
             result.fold(
                 onSuccess = { user ->
+                    userSession.setUser(user) // Set user session
                     _uiState.update { it.copy(authState = AuthState.Authenticated(user)) }
                 },
                 onFailure = { exception ->

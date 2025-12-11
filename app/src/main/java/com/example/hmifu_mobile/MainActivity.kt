@@ -17,6 +17,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.hmifu_mobile.navigation.NavGraph
 import com.example.hmifu_mobile.navigation.Route
 import com.example.hmifu_mobile.repository.AuthRepository
+import com.example.hmifu_mobile.repository.EventRepository
 import com.example.hmifu_mobile.ui.theme.HMIFUMobileTheme
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -31,6 +32,9 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var authRepository: AuthRepository
 
+    @Inject
+    lateinit var eventRepository: EventRepository
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -39,7 +43,8 @@ class MainActivity : ComponentActivity() {
             HMIFUMobileTheme {
                 HmifuMobileApp(
                     isAuthenticated = authRepository.isAuthenticated(),
-                    onLogout = { authRepository.logout() }
+                    onLogout = { authRepository.logout() },
+                    eventRepository = eventRepository
                 )
             }
         }
@@ -52,7 +57,8 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun HmifuMobileApp(
     isAuthenticated: Boolean,
-    onLogout: suspend () -> Unit
+    onLogout: suspend () -> Unit,
+    eventRepository: EventRepository
 ) {
     val navController = rememberNavController()
     var shouldLogout by remember { mutableStateOf(false) }
@@ -71,7 +77,8 @@ fun HmifuMobileApp(
         NavGraph(
             navController = navController,
             startDestination = if (isAuthenticated) Route.Main else Route.Login,
-            onLogout = { shouldLogout = true }
+            onLogout = { shouldLogout = true },
+            eventRepository = eventRepository
         )
     }
 }

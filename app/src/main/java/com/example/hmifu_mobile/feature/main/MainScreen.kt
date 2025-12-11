@@ -41,7 +41,9 @@ import com.example.hmifu_mobile.ui.theme.TextSecondary
  */
 @Composable
 fun MainScreen(
-    onLogout: () -> Unit
+    onLogout: () -> Unit,
+    onAddEventClick: () -> Unit = {},
+    onEventClick: (String) -> Unit = {}
 ) {
     var selectedTabIndex by rememberSaveable { mutableIntStateOf(0) }
 
@@ -104,8 +106,8 @@ fun MainScreen(
                 .padding(innerPadding)
         ) {
             when (selectedTabIndex) {
-                0 -> HomeScreen()
-                1 -> EventsScreen()
+                0 -> HomeScreen(onEventClick = onEventClick)
+                1 -> EventsScreen(onAddEventClick = onAddEventClick)
                 2 -> ProfileScreen(onLogout = onLogout)
             }
         }
