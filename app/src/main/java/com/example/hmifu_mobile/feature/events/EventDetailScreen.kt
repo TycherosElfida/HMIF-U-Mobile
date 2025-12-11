@@ -32,11 +32,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -44,7 +41,6 @@ import androidx.compose.ui.unit.dp
 import com.example.hmifu_mobile.data.local.entity.EventCategory
 import com.example.hmifu_mobile.data.local.entity.EventEntity
 import com.example.hmifu_mobile.data.local.entity.EventStatus
-import com.example.hmifu_mobile.data.repository.EventRepository
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -55,17 +51,12 @@ import java.util.Locale
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EventDetailScreen(
-    eventId: String,
-    eventRepository: EventRepository,
+    viewModel: EventDetailViewModel = androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel(),
     onNavigateBack: () -> Unit,
     onAddToCalendar: (EventEntity) -> Unit = {},
     onRegister: (EventEntity) -> Unit = {}
 ) {
-    var event by remember { mutableStateOf<EventEntity?>(null) }
-
-    LaunchedEffect(eventId) {
-        eventRepository.observeById(eventId).collect { event = it }
-    }
+    val event by viewModel.event.collectAsState()
 
     Scaffold(
         topBar = {

@@ -126,7 +126,5 @@ class CreateAnnouncementViewModel @Inject constructor(
         _uiState.update { it.copy(errorMessage = null) }
     }
 
-    fun reset() {
-        _uiState.value = CreateAnnouncementUiState()
-    }
+
 }

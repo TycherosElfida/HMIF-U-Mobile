@@ -13,9 +13,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.example.hmifu_mobile.feature.auth.AuthViewModel
 import com.example.hmifu_mobile.feature.auth.LoginScreen
 import com.example.hmifu_mobile.feature.auth.ProfileSetupScreen
@@ -93,12 +95,6 @@ fun HmifNavHost(modifier: Modifier = Modifier) {
                         launchSingleTop = true
                         restoreState = true
                     }
-                },
-                onLogout = {
-                    authViewModel.logout()
-                    navController.navigate(Screen.Login.route) {
-                        popUpTo(0) { inclusive = true }
-                    }
                 }
             ) {
                 com.example.hmifu_mobile.feature.home.HomeScreen()
@@ -116,12 +112,6 @@ fun HmifNavHost(modifier: Modifier = Modifier) {
                         launchSingleTop = true
                         restoreState = true
                     }
-                },
-                onLogout = {
-                    authViewModel.logout()
-                    navController.navigate(Screen.Login.route) {
-                        popUpTo(0) { inclusive = true }
-                    }
                 }
             ) {
                 com.example.hmifu_mobile.feature.events.EventsScreen(
@@ -132,6 +122,14 @@ fun HmifNavHost(modifier: Modifier = Modifier) {
             }
         }
 
+        composable(
+            route = "event_detail/{eventId}",
+            arguments = listOf(navArgument("eventId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            com.example.hmifu_mobile.feature.events.EventDetailScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
         composable(Screen.Profile.route) {
             MainScaffold(
                 currentRoute = Screen.Profile.route,
@@ -142,12 +140,6 @@ fun HmifNavHost(modifier: Modifier = Modifier) {
                         }
                         launchSingleTop = true
                         restoreState = true
-                    }
-                },
-                onLogout = {
-                    authViewModel.logout()
-                    navController.navigate(Screen.Login.route) {
-                        popUpTo(0) { inclusive = true }
                     }
                 }
             ) {
@@ -241,11 +233,9 @@ fun HmifNavHost(modifier: Modifier = Modifier) {
  * Main scaffold with bottom navigation.
  */
 @Composable
-@Suppress("UNUSED_PARAMETER")
 private fun MainScaffold(
     currentRoute: String,
     onNavigate: (String) -> Unit,
-    onLogout: () -> Unit,  // Kept for future use (e.g., logout from app bar)
     content: @Composable () -> Unit
 ) {
     // Create list of bottom nav items with non-null assertion to avoid R8 issues

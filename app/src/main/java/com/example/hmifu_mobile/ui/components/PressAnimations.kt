@@ -41,12 +41,4 @@ fun Modifier.pressAnimation(
         }
 }
 
-/**
- * Bouncy press animation modifier.
- */
-@Composable
-fun Modifier.bouncyPress(
-    onClick: () -> Unit
-): Modifier {
-    return pressAnimation(onClick = onClick, pressScale = 0.95f)
-}
+

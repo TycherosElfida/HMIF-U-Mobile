@@ -77,8 +77,5 @@ class MyEventsViewModel @Inject constructor(
         _uiState.update { it.copy(errorMessage = null) }
     }
 
-    fun refresh() {
-        _uiState.update { it.copy(isLoading = true) }
-        loadMyEvents()
-    }
+
 }
