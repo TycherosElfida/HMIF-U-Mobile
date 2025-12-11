@@ -5,6 +5,8 @@ import androidx.lifecycle.viewModelScope
 import com.example.hmifu_mobile.data.local.entity.AnnouncementCategory
 import com.example.hmifu_mobile.data.local.entity.AnnouncementEntity
 import com.example.hmifu_mobile.data.repository.AnnouncementRepository
+import com.example.hmifu_mobile.data.repository.UserProfile
+import com.example.hmifu_mobile.data.repository.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -20,7 +22,13 @@ data class HomeUiState(
     val announcements: List<AnnouncementEntity> = emptyList(),
     val selectedCategory: AnnouncementCategory? = null,
     val isLoading: Boolean = false,
-    val errorMessage: String? = null
+    val errorMessage: String? = null,
+    // User profile data
+    val userName: String = "",
+    val userNim: String = "",
+    val userAngkatan: String = "",
+    val userPoints: Int = 0,
+    val hasUnreadNotifications: Boolean = false
 )
 
 /**
@@ -28,15 +36,46 @@ data class HomeUiState(
  */
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    private val announcementRepository: AnnouncementRepository
+    private val announcementRepository: AnnouncementRepository,
+    private val userRepository: UserRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
     init {
+        loadUserProfile()
         loadAnnouncements()
         startFirestoreSync()
+    }
+
+    private fun loadUserProfile() {
+        viewModelScope.launch {
+            userRepository.syncCurrentUser().onSuccess { profile ->
+                _uiState.update {
+                    it.copy(
+                        userName = profile.name.ifBlank { "Member" },
+                        userNim = profile.nim,
+                        userAngkatan = profile.angkatan,
+                        userPoints = 0 // TODO: Implement points system
+                    )
+                }
+            }
+
+            // Also observe local user changes
+            userRepository.observeCurrentUser().collect { userEntity ->
+                userEntity?.let { user ->
+                    _uiState.update {
+                        it.copy(
+                            userName = user.name.ifBlank { "Member" },
+                            userNim = user.nim,
+                            userAngkatan = user.angkatan,
+                            userPoints = user.points
+                        )
+                    }
+                }
+            }
+        }
     }
 
     private fun loadAnnouncements() {
