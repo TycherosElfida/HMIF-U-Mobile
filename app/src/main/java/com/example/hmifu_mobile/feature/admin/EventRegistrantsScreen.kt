@@ -101,9 +101,11 @@ fun EventRegistrantsScreen(
         when {
             uiState.isLoading -> {
                 LoadingSkeletonList(itemCount = 5) {
-                    ShimmerBox(modifier = Modifier
-                        .fillMaxWidth()
-                        .height(72.dp))
+                    ShimmerBox(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(72.dp)
+                    )
                 }
             }
 

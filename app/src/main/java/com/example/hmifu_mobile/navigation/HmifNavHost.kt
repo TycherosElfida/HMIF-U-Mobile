@@ -212,6 +212,19 @@ fun HmifNavHost(modifier: Modifier = Modifier) {
                 onNavigateBack = { navController.popBackStack() }
             )
         }
+
+        composable("member_card") {
+            com.example.hmifu_mobile.feature.qr.MemberCardScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable("qr_scanner/{eventId}") { backStackEntry ->
+            com.example.hmifu_mobile.feature.qr.QrScannerScreen(
+                eventId = backStackEntry.arguments?.getString("eventId") ?: "",
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
     }
 }
 

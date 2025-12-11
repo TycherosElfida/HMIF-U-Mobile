@@ -179,9 +179,11 @@ fun AdminScreen(
     ) { padding ->
         if (uiState.isLoading) {
             LoadingSkeletonList(itemCount = 4) {
-                ShimmerBox(modifier = Modifier
-                    .fillMaxWidth()
-                    .height(80.dp))
+                ShimmerBox(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(80.dp)
+                )
             }
         } else {
             LazyColumn(
