@@ -25,12 +25,12 @@ data class AnnouncementEntity(
 /**
  * Announcement categories.
  */
-enum class AnnouncementCategory(val displayName: String) {
-    ACADEMIC("Academic"),
-    EVENT("Event"),
-    CAREER("Career"),
-    COMPETITION("Competition"),
-    GENERAL("General");
+enum class AnnouncementCategory(val displayName: String, val emoji: String) {
+    ACADEMIC("Academic", "📚"),
+    EVENT("Event", "📅"),
+    CAREER("Career", "💼"),
+    COMPETITION("Competition", "🏆"),
+    GENERAL("General", "📢");
 
     companion object {
         fun fromString(value: String): AnnouncementCategory {
@@ -38,3 +38,4 @@ enum class AnnouncementCategory(val displayName: String) {
         }
     }
 }
+

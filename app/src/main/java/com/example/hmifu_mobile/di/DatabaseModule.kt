@@ -47,7 +47,7 @@ object DatabaseModule {
 
     @Provides
     @Singleton
-    fun provideEventRegistrationDao(database: HmifDatabase): EventRegistrationDao = 
+    fun provideEventRegistrationDao(database: HmifDatabase): EventRegistrationDao =
         database.eventRegistrationDao()
 }
 

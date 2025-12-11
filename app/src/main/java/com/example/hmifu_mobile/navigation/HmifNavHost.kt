@@ -180,6 +180,38 @@ fun HmifNavHost(modifier: Modifier = Modifier) {
                 }
             )
         }
+
+        // Admin Panel routes
+        composable("admin") {
+            com.example.hmifu_mobile.feature.admin.AdminScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onCreateAnnouncement = { navController.navigate("create_announcement") },
+                onCreateEvent = { navController.navigate("create_event") },
+                onViewRegistrants = { eventId ->
+                    navController.navigate("event_registrants/$eventId")
+                }
+            )
+        }
+
+        composable("create_announcement") {
+            com.example.hmifu_mobile.feature.admin.CreateAnnouncementScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onSuccess = { navController.popBackStack() }
+            )
+        }
+
+        composable("create_event") {
+            com.example.hmifu_mobile.feature.admin.CreateEventScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onSuccess = { navController.popBackStack() }
+            )
+        }
+
+        composable("event_registrants/{eventId}") {
+            com.example.hmifu_mobile.feature.admin.EventRegistrantsScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
     }
 }
 
@@ -196,7 +228,7 @@ private fun MainScaffold(
 ) {
     // Create list of bottom nav items with non-null assertion to avoid R8 issues
     val navItems = listOf(Screen.Home, Screen.Events, Screen.Profile)
-    
+
     Scaffold(
         bottomBar = {
             NavigationBar {

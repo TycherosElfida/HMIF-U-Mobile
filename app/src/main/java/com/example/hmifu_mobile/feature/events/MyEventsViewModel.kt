@@ -52,8 +52,8 @@ class MyEventsViewModel @Inject constructor(
         viewModelScope.launch {
             eventRegistrationDao.getUpcomingRegisteredEvents(userId, currentTime)
                 .collect { events ->
-                    _uiState.update { 
-                        it.copy(isLoading = false, upcomingEvents = events) 
+                    _uiState.update {
+                        it.copy(isLoading = false, upcomingEvents = events)
                     }
                 }
         }
@@ -62,8 +62,8 @@ class MyEventsViewModel @Inject constructor(
         viewModelScope.launch {
             eventRegistrationDao.getPastRegisteredEvents(userId, currentTime)
                 .collect { events ->
-                    _uiState.update { 
-                        it.copy(pastEvents = events) 
+                    _uiState.update {
+                        it.copy(pastEvents = events)
                     }
                 }
         }
