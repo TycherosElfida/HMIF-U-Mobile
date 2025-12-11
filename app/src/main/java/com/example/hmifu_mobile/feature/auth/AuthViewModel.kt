@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.hmifu_mobile.data.repository.AuthRepository
 import com.example.hmifu_mobile.data.repository.AuthResult
+import com.example.hmifu_mobile.data.repository.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -22,7 +23,8 @@ data class AuthUiState(
     val isLoading: Boolean = false,
     val errorMessage: String? = null,
     val isAuthenticated: Boolean = false,
-    val needsProfileSetup: Boolean = false
+    val needsProfileSetup: Boolean = false,
+    val role: String = "member"
 )
 
 /**
@@ -30,7 +32,8 @@ data class AuthUiState(
  */
 @HiltViewModel
 class AuthViewModel @Inject constructor(
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
+    private val userRepository: UserRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AuthUiState())
@@ -40,6 +43,16 @@ class AuthViewModel @Inject constructor(
         // Check if user is already logged in
         if (authRepository.isLoggedIn) {
             _uiState.update { it.copy(isAuthenticated = true) }
+            fetchUserRole()
+        }
+    }
+
+    private fun fetchUserRole() {
+        viewModelScope.launch {
+            val result = userRepository.syncCurrentUser()
+            result.onSuccess { profile ->
+                _uiState.update { it.copy(role = profile.role) }
+            }
         }
     }
 

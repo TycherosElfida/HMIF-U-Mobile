@@ -48,8 +48,10 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.example.hmifu_mobile.data.local.entity.AnnouncementEntity
 import com.example.hmifu_mobile.data.local.entity.EventEntity
+import com.example.hmifu_mobile.ui.components.HmifCard
 import com.example.hmifu_mobile.ui.components.LoadingSkeletonList
 import com.example.hmifu_mobile.ui.components.ShimmerBox
+import com.example.hmifu_mobile.feature.admin.treasurer.TreasurerScreen
 
 /**
  * Admin dashboard screen.
@@ -61,24 +63,65 @@ fun AdminScreen(
     onCreateAnnouncement: () -> Unit = {},
     onCreateEvent: () -> Unit = {},
     onViewRegistrants: (String) -> Unit = {},
+    onNavigateToTreasurer: () -> Unit = {},
+    onNavigateToUserManagement: () -> Unit = {},
+    onNavigateToFinancials: () -> Unit = {},
+    onNavigateToDocuments: () -> Unit = {},
+    onNavigateToElection: () -> Unit = {},
+    onNavigateToContent: () -> Unit = {},
     viewModel: AdminViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    val snackbarHostState = remember { SnackbarHostState() }
-    var showFabMenu by remember { mutableStateOf(false) }
-
-    LaunchedEffect(uiState.errorMessage) {
-        uiState.errorMessage?.let {
-            snackbarHostState.showSnackbar(it)
-            viewModel.clearError()
-        }
-    }
-
+    
     // Check if user is not admin
     if (!uiState.isLoading && !uiState.isAdmin) {
         AccessDeniedScreen(onNavigateBack = onNavigateBack)
         return
     }
+
+    // Role-based routing
+    if (uiState.role == "treasurer") {
+        com.example.hmifu_mobile.feature.admin.treasurer.TreasurerScreen(
+            onNavigateBack = onNavigateBack
+        )
+        return
+    }
+
+    if (uiState.role == "president") {
+        com.example.hmifu_mobile.feature.admin.president.PresidentScreen(
+            onNavigateBack = onNavigateBack,
+            onNavigateToUserManagement = onNavigateToUserManagement,
+            onNavigateToFinancials = onNavigateToFinancials,
+            onNavigateToDocuments = onNavigateToDocuments,
+            onNavigateToElection = onNavigateToElection,
+            onNavigateToContent = { onNavigateToContent() }
+        )
+        return
+    }
+
+    // Default Admin Dashboard for other roles (President, etc for now)
+    AdminDashboardContent(
+        uiState = uiState,
+        onNavigateBack = onNavigateBack,
+        onCreateAnnouncement = onCreateAnnouncement,
+        onCreateEvent = onCreateEvent,
+        onViewRegistrants = onViewRegistrants,
+        viewModel = viewModel
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun AdminDashboardContent(
+    uiState: AdminUiState,
+    onNavigateBack: () -> Unit,
+    onCreateAnnouncement: () -> Unit,
+    onCreateEvent: () -> Unit,
+    onViewRegistrants: (String) -> Unit,
+    viewModel: AdminViewModel
+) {
+    val snackbarHostState = remember { SnackbarHostState() }
+    var showFabMenu by remember { mutableStateOf(false) }
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -107,17 +150,18 @@ fun AdminScreen(
                     // Create Event FAB
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.padding(bottom = 8.dp)
+                        modifier = Modifier.padding(bottom = 12.dp)
                     ) {
                         Card(
                             colors = CardDefaults.cardColors(
                                 containerColor = MaterialTheme.colorScheme.surface
-                            )
+                            ),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                         ) {
                             Text(
                                 text = "Create Event",
                                 modifier = Modifier.padding(8.dp),
-                                style = MaterialTheme.typography.bodySmall
+                                style = MaterialTheme.typography.labelMedium
                             )
                         }
                         Spacer(modifier = Modifier.width(8.dp))
@@ -126,7 +170,8 @@ fun AdminScreen(
                                 showFabMenu = false
                                 onCreateEvent()
                             },
-                            containerColor = MaterialTheme.colorScheme.secondaryContainer
+                            containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                            modifier = Modifier.size(48.dp)
                         ) {
                             Icon(Icons.Default.Event, contentDescription = "Create Event")
                         }
@@ -135,17 +180,18 @@ fun AdminScreen(
                     // Create Announcement FAB
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.padding(bottom = 8.dp)
+                        modifier = Modifier.padding(bottom = 12.dp)
                     ) {
                         Card(
                             colors = CardDefaults.cardColors(
                                 containerColor = MaterialTheme.colorScheme.surface
-                            )
+                            ),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                         ) {
                             Text(
                                 text = "Create Announcement",
                                 modifier = Modifier.padding(8.dp),
-                                style = MaterialTheme.typography.bodySmall
+                                style = MaterialTheme.typography.labelMedium
                             )
                         }
                         Spacer(modifier = Modifier.width(8.dp))
@@ -154,7 +200,8 @@ fun AdminScreen(
                                 showFabMenu = false
                                 onCreateAnnouncement()
                             },
-                            containerColor = MaterialTheme.colorScheme.tertiaryContainer
+                            containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                            modifier = Modifier.size(48.dp)
                         ) {
                             Icon(
                                 Icons.AutoMirrored.Filled.Announcement,
@@ -170,8 +217,9 @@ fun AdminScreen(
                     containerColor = MaterialTheme.colorScheme.primaryContainer
                 ) {
                     Icon(
-                        Icons.Default.Add,
-                        contentDescription = if (showFabMenu) "Close" else "Create"
+                        if(showFabMenu) androidx.compose.material.icons.Icons.Default.Add else Icons.Default.Add, // Rotate logic could be added here
+                        contentDescription = if (showFabMenu) "Close" else "Create",
+                        modifier = Modifier.size(24.dp) // Standard size
                     )
                 }
             }
@@ -189,7 +237,7 @@ fun AdminScreen(
                     .fillMaxSize()
                     .padding(padding),
                 contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                verticalArrangement = Arrangement.spacedBy(20.dp)
             ) {
                 // Stats cards
                 item {
@@ -223,7 +271,7 @@ fun AdminScreen(
                     }
                 } else {
                     item {
-                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                             uiState.recentAnnouncements.forEach { announcement ->
                                 AnnouncementItem(announcement = announcement)
                             }
@@ -242,7 +290,7 @@ fun AdminScreen(
                     }
                 } else {
                     item {
-                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                             uiState.recentEvents.forEach { event ->
                                 EventItem(
                                     event = event,
@@ -296,11 +344,8 @@ private fun StatCard(
     icon: ImageVector,
     modifier: Modifier = Modifier
 ) {
-    Card(
-        modifier = modifier,
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
-        )
+    HmifCard(
+        modifier = modifier
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
@@ -333,18 +378,13 @@ private fun SectionHeader(title: String) {
         text = title,
         style = MaterialTheme.typography.titleMedium,
         fontWeight = FontWeight.SemiBold,
-        modifier = Modifier.padding(vertical = 8.dp)
+        modifier = Modifier.padding(vertical = 4.dp)
     )
 }
 
 @Composable
 private fun EmptyCard(message: String) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-        )
-    ) {
+    HmifCard(modifier = Modifier.fillMaxWidth()) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -362,33 +402,29 @@ private fun EmptyCard(message: String) {
 
 @Composable
 private fun AnnouncementItem(announcement: AnnouncementEntity) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
-        )
-    ) {
+    HmifCard(modifier = Modifier.fillMaxWidth()) {
         Row(
-            modifier = Modifier.padding(12.dp),
+            modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
                 Icons.AutoMirrored.Filled.Announcement,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(24.dp)
             )
-            Spacer(modifier = Modifier.width(12.dp))
+            Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = announcement.title,
                     style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Medium,
+                    fontWeight = FontWeight.Bold,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
                 Text(
                     text = announcement.category,
-                    style = MaterialTheme.typography.bodySmall,
+                    style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
@@ -396,47 +432,44 @@ private fun AnnouncementItem(announcement: AnnouncementEntity) {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun EventItem(
     event: EventEntity,
     onViewRegistrants: () -> Unit
 ) {
-    Card(
+    HmifCard(
         modifier = Modifier.fillMaxWidth(),
-        onClick = onViewRegistrants,
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
-        )
+        onClick = onViewRegistrants
     ) {
         Row(
-            modifier = Modifier.padding(12.dp),
+            modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
                 Icons.Default.Event,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(24.dp)
             )
-            Spacer(modifier = Modifier.width(12.dp))
+            Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = event.title,
                     style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Medium,
+                    fontWeight = FontWeight.Bold,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
                 Text(
                     text = "${event.currentParticipants}/${event.maxParticipants ?: "∞"} registered",
-                    style = MaterialTheme.typography.bodySmall,
+                    style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
             Icon(
                 Icons.Default.People,
                 contentDescription = "View registrants",
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f)
             )
         }
     }

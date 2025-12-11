@@ -24,10 +24,10 @@ private val DarkColorScheme = darkColorScheme(
     onPrimary = SurfaceLight,
     primaryContainer = HmifBlueDark,
     onPrimaryContainer = HmifBlueLight,
-    secondary = HmifOrange,
-    onSecondary = SurfaceDark,
-    secondaryContainer = HmifOrangeDark,
-    onSecondaryContainer = HmifOrangeLight,
+    secondary = HmifSecondaryBlue,
+    onSecondary = SurfaceLight,
+    secondaryContainer = HmifSecondaryBlueDark,
+    onSecondaryContainer = HmifSecondaryBlueLight,
     tertiary = HmifPurple,
     onTertiary = SurfaceLight,
     tertiaryContainer = HmifPurpleDark,
@@ -48,10 +48,10 @@ private val LightColorScheme = lightColorScheme(
     onPrimary = SurfaceLight,
     primaryContainer = HmifBlueLight,
     onPrimaryContainer = HmifBlueDark,
-    secondary = HmifOrange,
+    secondary = HmifSecondaryBlue,
     onSecondary = SurfaceLight,
-    secondaryContainer = HmifOrangeLight,
-    onSecondaryContainer = HmifOrangeDark,
+    secondaryContainer = HmifSecondaryBlueLight,
+    onSecondaryContainer = HmifSecondaryBlueDark,
     tertiary = HmifPurple,
     onTertiary = SurfaceLight,
     tertiaryContainer = HmifPurpleLight,
@@ -74,14 +74,16 @@ private val LightColorScheme = lightColorScheme(
 @Composable
 fun HMIFUMobileTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    dynamicColor: Boolean = true,
+    // Dynamic color is disabled to enforce HMIF Brand Identity
+    dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        }
+        // Dynamic colors disabled by project plan
+        // dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
+        //     val context = LocalContext.current
+        //     if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+        // }
 
         darkTheme -> DarkColorScheme
         else -> LightColorScheme
@@ -107,7 +109,6 @@ fun HMIFUMobileTheme(
 
     MaterialTheme(
         colorScheme = colorScheme,
-        typography = Typography, // Ensure you have a Typography definition or remove this line if using defaults
         content = content
     )
 }

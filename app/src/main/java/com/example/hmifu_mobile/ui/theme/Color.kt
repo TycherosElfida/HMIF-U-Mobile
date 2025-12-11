@@ -12,10 +12,10 @@ val HmifBlue = Color(0xFF1E88E5)
 val HmifBlueLight = Color(0xFF6AB7FF)
 val HmifBlueDark = Color(0xFF005CB2)
 
-// Secondary: Orange (for accents/CTAs)
-val HmifOrange = Color(0xFFFF6F00)
-val HmifOrangeLight = Color(0xFFFFA040)
-val HmifOrangeDark = Color(0xFFC43E00)
+// Secondary: Light Blue (for accents/CTAs) - Monochromatic Scheme
+val HmifSecondaryBlue = Color(0xFF039BE5) // Light Blue 600
+val HmifSecondaryBlueLight = Color(0xFF63CCFF) // Light Blue A200
+val HmifSecondaryBlueDark = Color(0xFF006DB3) // Light Blue 800
 
 // Tertiary: Purple (for highlights)
 val HmifPurple = Color(0xFF5E35B1)

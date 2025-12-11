@@ -49,5 +49,25 @@ object DatabaseModule {
     @Singleton
     fun provideEventRegistrationDao(database: HmifDatabase): EventRegistrationDao =
         database.eventRegistrationDao()
+
+    @Provides
+    @Singleton
+    fun provideTransactionDao(database: HmifDatabase): com.example.hmifu_mobile.data.local.dao.TransactionDao =
+        database.transactionDao()
+
+    @Provides
+    @Singleton
+    fun provideDocumentDao(database: HmifDatabase): com.example.hmifu_mobile.data.local.dao.DocumentDao =
+        database.documentDao()
+
+    @Provides
+    @Singleton
+    fun provideCandidateDao(database: HmifDatabase): com.example.hmifu_mobile.data.local.dao.CandidateDao =
+        database.candidateDao()
+
+    @Provides
+    @Singleton
+    fun provideVoteRecordDao(database: HmifDatabase): com.example.hmifu_mobile.data.local.dao.VoteRecordDao =
+        database.voteRecordDao()
 }
 

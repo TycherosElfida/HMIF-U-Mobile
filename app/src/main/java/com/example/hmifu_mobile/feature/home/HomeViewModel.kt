@@ -16,8 +16,15 @@ import javax.inject.Inject
 /**
  * UI State for Home screen.
  */
+import com.example.hmifu_mobile.data.local.entity.EventEntity
+import com.example.hmifu_mobile.data.repository.EventRepository
+
+/**
+ * UI State for Home screen.
+ */
 data class HomeUiState(
     val announcements: List<AnnouncementEntity> = emptyList(),
+    val featuredEvent: EventEntity? = null,
     val selectedCategory: AnnouncementCategory? = null,
     val isLoading: Boolean = false,
     val errorMessage: String? = null
@@ -28,27 +35,41 @@ data class HomeUiState(
  */
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    private val announcementRepository: AnnouncementRepository
+    private val announcementRepository: AnnouncementRepository,
+    private val eventRepository: EventRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
     init {
-        loadAnnouncements()
+        loadData()
         startFirestoreSync()
     }
 
-    private fun loadAnnouncements() {
+    private fun loadData() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
 
-            announcementRepository.observeAnnouncements().collect { announcements ->
-                _uiState.update {
-                    it.copy(
-                        announcements = announcements,
-                        isLoading = false
-                    )
+            // Combine announcements and featured event loading
+            launch {
+                announcementRepository.observeAnnouncements().collect { announcements ->
+                    _uiState.update {
+                        it.copy(
+                            announcements = announcements,
+                            isLoading = false
+                        )
+                    }
+                }
+            }
+
+            launch {
+                eventRepository.observeUpcoming().collect { events ->
+                    _uiState.update {
+                        it.copy(
+                            featuredEvent = events.firstOrNull()
+                        )
+                    }
                 }
             }
         }
@@ -56,9 +77,19 @@ class HomeViewModel @Inject constructor(
 
     private fun startFirestoreSync() {
         viewModelScope.launch {
-            announcementRepository.syncFromFirestore().collect { result ->
-                result.onFailure { error ->
-                    _uiState.update { it.copy(errorMessage = error.message) }
+            launch {
+                announcementRepository.syncFromFirestore().collect { result ->
+                    result.onFailure { error ->
+                        _uiState.update { it.copy(errorMessage = error.message) }
+                    }
+                }
+            }
+            launch {
+                eventRepository.syncFromFirestore().collect { result ->
+                     result.onFailure { error ->
+                        // Log error but don't disrupt UI too much for background sync
+                        // _uiState.update { it.copy(errorMessage = error.message) } 
+                     }
                 }
             }
         }

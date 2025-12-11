@@ -163,6 +163,61 @@ class UserRepository @Inject constructor(
         }
     }
 
+    /**
+     * Search users by name or email.
+     */
+    suspend fun searchUsers(query: String): Result<List<UserProfile>> {
+        return try {
+            // Simple search implementation (Firestore is limited in search)
+            // We'll fetch by name and email (startAt/endAt) or use a composite index if available.
+            // For now, let's fetch recent users or just support prefix search on 'name'.
+            // Note: Case sensitivity is an issue with Firestore.
+            
+            // A more robust app uses Algolia/Typesense. For this MVP, we might fetch all (if small) or just some.
+            // Let's implement prefix search on 'name'.
+            
+            val snapshot = usersCollection
+                .orderBy("name")
+                .startAt(query)
+                .endAt(query + "\uf8ff")
+                .limit(50)
+                .get()
+                .await()
+
+            val users = snapshot.documents.mapNotNull { doc ->
+                if (doc.exists()) {
+                    UserProfile(
+                        uid = doc.id,
+                        email = doc.getString("email") ?: "",
+                        name = doc.getString("name") ?: "",
+                        nim = doc.getString("nim") ?: "",
+                        angkatan = doc.getString("angkatan") ?: "",
+                        concentration = doc.getString("concentration") ?: "",
+                        techStack = doc.getString("techStack") ?: "",
+                        photoUrl = doc.getString("photoUrl"),
+                        role = doc.getString("role") ?: "member"
+                    )
+                } else null
+            }
+            Result.success(users)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    /**
+     * Update a user's role (Admin/President only).
+     */
+    suspend fun updateUserRole(uid: String, newRole: String): Result<Unit> {
+        return try {
+            usersCollection.document(uid).update("role", newRole).await()
+            // We should also update local cache if it exists, or just rely on network for this admin feature.
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
     private fun UserEntity.toProfile(): UserProfile = UserProfile(
         uid = uid,
         email = email,

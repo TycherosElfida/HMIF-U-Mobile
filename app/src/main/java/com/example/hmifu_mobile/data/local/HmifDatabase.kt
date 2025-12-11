@@ -20,9 +20,13 @@ import com.example.hmifu_mobile.data.local.entity.UserEntity
         UserEntity::class,
         AnnouncementEntity::class,
         EventEntity::class,
-        EventRegistrationEntity::class
+        EventRegistrationEntity::class,
+        com.example.hmifu_mobile.data.local.entity.TransactionEntity::class,
+        com.example.hmifu_mobile.data.local.entity.DocumentEntity::class,
+        com.example.hmifu_mobile.data.local.entity.CandidateEntity::class,
+        com.example.hmifu_mobile.data.local.entity.VoteRecordEntity::class
     ],
-    version = 4,
+    version = 7,
     exportSchema = false
 )
 abstract class HmifDatabase : RoomDatabase() {
@@ -30,5 +34,9 @@ abstract class HmifDatabase : RoomDatabase() {
     abstract fun announcementDao(): AnnouncementDao
     abstract fun eventDao(): EventDao
     abstract fun eventRegistrationDao(): EventRegistrationDao
+    abstract fun transactionDao(): com.example.hmifu_mobile.data.local.dao.TransactionDao
+    abstract fun documentDao(): com.example.hmifu_mobile.data.local.dao.DocumentDao
+    abstract fun candidateDao(): com.example.hmifu_mobile.data.local.dao.CandidateDao
+    abstract fun voteRecordDao(): com.example.hmifu_mobile.data.local.dao.VoteRecordDao
 }
 

@@ -27,8 +27,10 @@ data class CreateEventUiState(
     val location: String = "",
     val isOnline: Boolean = false,
     val maxParticipants: String = "",
-    val startDate: Long = System.currentTimeMillis() + 86400000, // Default: tomorrow
-    val endDate: Long = System.currentTimeMillis() + 90000000, // Default: tomorrow + 1 hour
+    val startDate: Long = System.currentTimeMillis() + 86400000,
+    val endDate: Long = System.currentTimeMillis() + 90000000,
+    val selectedImageUri: android.net.Uri? = null,
+    val existingImageUrl: String? = null,
     val isLoading: Boolean = false,
     val isSuccess: Boolean = false,
     val errorMessage: String? = null
@@ -45,7 +47,8 @@ data class CreateEventUiState(
 class CreateEventViewModel @Inject constructor(
     private val eventDao: EventDao,
     private val firestore: FirebaseFirestore,
-    private val auth: FirebaseAuth
+    private val auth: FirebaseAuth,
+    private val imageRepository: com.example.hmifu_mobile.data.repository.ImageRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(CreateEventUiState())
@@ -86,7 +89,40 @@ class CreateEventViewModel @Inject constructor(
         _uiState.update { it.copy(endDate = date) }
     }
 
-    fun createEvent() {
+    fun updateSelectedImage(uri: android.net.Uri?) {
+        _uiState.update { it.copy(selectedImageUri = uri) }
+    }
+
+    private var editEventId: String? = null
+
+    fun loadEvent(eventId: String) {
+        if (editEventId == eventId) return 
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true) }
+            val event = eventDao.getById(eventId)
+            if (event != null) {
+                editEventId = event.id
+                _uiState.update {
+                    it.copy(
+                        title = event.title,
+                        description = event.description,
+                        category = try { EventCategory.valueOf(event.category) } catch(e: Exception) { EventCategory.SEMINAR },
+                        location = if (event.isOnline) "Online" else event.location,
+                        isOnline = event.isOnline,
+                        maxParticipants = event.maxParticipants?.toString() ?: "",
+                        startDate = event.startTime,
+                        endDate = event.endTime,
+                        existingImageUrl = event.imageUrl,
+                        isLoading = false
+                    )
+                }
+            } else {
+                _uiState.update { it.copy(isLoading = false, errorMessage = "Event not found") }
+            }
+        }
+    }
+
+    fun saveEvent() {
         if (!uiState.value.isValid) {
             _uiState.update { it.copy(errorMessage = "Please fill in all required fields") }
             return
@@ -97,9 +133,31 @@ class CreateEventViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val state = _uiState.value
-                val id = UUID.randomUUID().toString()
+                // Use existing ID if editing, else generate new
+                val id = editEventId ?: UUID.randomUUID().toString()
                 val now = System.currentTimeMillis()
                 val organizerId = auth.currentUser?.uid ?: ""
+
+                // Upload image if selected
+                var finalImageUrl: String? = null
+                
+                // If new image selected, upload it
+                if (state.selectedImageUri != null) {
+                    val uploadResult = imageRepository.uploadImage(state.selectedImageUri!!, "events")
+                    if (uploadResult.isSuccess) {
+                        finalImageUrl = uploadResult.getOrNull()
+                    } else {
+                         _uiState.update { 
+                             it.copy(isLoading = false, errorMessage = "Failed to upload image: ${uploadResult.exceptionOrNull()?.message}") 
+                         }
+                        return@launch
+                    }
+                } else if (editEventId != null) {
+                    // If editing and no new image, keep existing?
+                    // We need to fetch existing event to know old URL if we don't store it in state
+                    val oldEvent = eventDao.getById(editEventId!!)
+                    finalImageUrl = oldEvent?.imageUrl
+                }
 
                 val maxPart = state.maxParticipants.toIntOrNull()
 
@@ -110,12 +168,14 @@ class CreateEventViewModel @Inject constructor(
                     category = state.category.name,
                     location = if (state.isOnline) "Online" else state.location,
                     isOnline = state.isOnline,
+                    meetingUrl = if (state.isOnline) state.location else null,
                     startTime = state.startDate,
                     endTime = state.endDate,
                     maxParticipants = maxPart,
-                    currentParticipants = 0,
+                    currentParticipants = if (editEventId != null) eventDao.getById(id)?.currentParticipants ?: 0 else 0,
                     organizerId = organizerId,
-                    createdAt = now,
+                    imageUrl = finalImageUrl,
+                    createdAt = if (editEventId != null) eventDao.getById(id)?.createdAt ?: now else now,
                     updatedAt = now
                 )
 
@@ -127,12 +187,14 @@ class CreateEventViewModel @Inject constructor(
                     "category" to state.category.name,
                     "location" to event.location,
                     "isOnline" to state.isOnline,
+                    "meetingUrl" to event.meetingUrl,
                     "startTime" to state.startDate,
                     "endTime" to state.endDate,
                     "maxParticipants" to maxPart,
-                    "currentParticipants" to 0,
+                    "currentParticipants" to event.currentParticipants,
                     "organizerId" to organizerId,
-                    "createdAt" to now,
+                    "imageUrl" to finalImageUrl,
+                    "createdAt" to event.createdAt,
                     "updatedAt" to now
                 )
 
@@ -151,10 +213,25 @@ class CreateEventViewModel @Inject constructor(
                 _uiState.update {
                     it.copy(
                         isLoading = false,
-                        errorMessage = e.message ?: "Failed to create event"
+                        errorMessage = e.message ?: "Failed to save event"
                     )
                 }
             }
+        }
+    }
+
+    fun deleteEvent() {
+        if (editEventId == null) return
+        
+        _uiState.update { it.copy(isLoading = true) }
+        viewModelScope.launch {
+             try {
+                 firestore.collection("events").document(editEventId!!).delete().await()
+                 eventDao.delete(editEventId!!)
+                 _uiState.update { it.copy(isLoading = false, isSuccess = true) }
+             } catch (e: Exception) {
+                 _uiState.update { it.copy(isLoading = false, errorMessage = e.message) }
+             }
         }
     }
 
@@ -163,6 +240,7 @@ class CreateEventViewModel @Inject constructor(
     }
 
     fun reset() {
+        editEventId = null
         _uiState.value = CreateEventUiState()
     }
 }

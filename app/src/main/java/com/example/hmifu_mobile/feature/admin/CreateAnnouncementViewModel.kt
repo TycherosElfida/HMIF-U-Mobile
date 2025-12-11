@@ -25,6 +25,7 @@ data class CreateAnnouncementUiState(
     val body: String = "",
     val category: AnnouncementCategory = AnnouncementCategory.GENERAL,
     val isPinned: Boolean = false,
+    val selectedImageUri: android.net.Uri? = null,
     val isLoading: Boolean = false,
     val isSuccess: Boolean = false,
     val errorMessage: String? = null
@@ -40,7 +41,8 @@ data class CreateAnnouncementUiState(
 class CreateAnnouncementViewModel @Inject constructor(
     private val announcementDao: AnnouncementDao,
     private val firestore: FirebaseFirestore,
-    private val auth: FirebaseAuth
+    private val auth: FirebaseAuth,
+    private val imageRepository: com.example.hmifu_mobile.data.repository.ImageRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(CreateAnnouncementUiState())
@@ -62,6 +64,10 @@ class CreateAnnouncementViewModel @Inject constructor(
         _uiState.update { it.copy(isPinned = isPinned) }
     }
 
+    fun updateSelectedImage(uri: android.net.Uri?) {
+        _uiState.update { it.copy(selectedImageUri = uri) }
+    }
+
     fun createAnnouncement() {
         if (!uiState.value.isValid) {
             _uiState.update { it.copy(errorMessage = "Please fill in all required fields") }
@@ -77,6 +83,20 @@ class CreateAnnouncementViewModel @Inject constructor(
                 val now = System.currentTimeMillis()
                 val authorId = auth.currentUser?.uid ?: ""
 
+                // Upload image
+                var uploadedImageUrl: String? = null
+                if (state.selectedImageUri != null) {
+                    val uploadResult = imageRepository.uploadImage(state.selectedImageUri!!, "announcements")
+                    if (uploadResult.isSuccess) {
+                        uploadedImageUrl = uploadResult.getOrNull()
+                    } else {
+                         _uiState.update { 
+                             it.copy(isLoading = false, errorMessage = "Failed to upload image: ${uploadResult.exceptionOrNull()?.message}") 
+                         }
+                        return@launch
+                    }
+                }
+
                 val announcement = AnnouncementEntity(
                     id = id,
                     title = state.title,
@@ -84,6 +104,7 @@ class CreateAnnouncementViewModel @Inject constructor(
                     category = state.category.name,
                     isPinned = state.isPinned,
                     authorId = authorId,
+                    attachmentUrl = uploadedImageUrl,
                     createdAt = now,
                     updatedAt = now
                 )
@@ -96,6 +117,7 @@ class CreateAnnouncementViewModel @Inject constructor(
                     "category" to state.category.name,
                     "isPinned" to state.isPinned,
                     "authorId" to authorId,
+                    "attachmentUrl" to uploadedImageUrl,
                     "createdAt" to now,
                     "updatedAt" to now
                 )

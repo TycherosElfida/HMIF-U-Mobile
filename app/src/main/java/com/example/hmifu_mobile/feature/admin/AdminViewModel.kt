@@ -22,6 +22,7 @@ import javax.inject.Inject
 data class AdminUiState(
     val isLoading: Boolean = true,
     val isAdmin: Boolean = false,
+    val role: String = "", // Added role field
     val totalAnnouncements: Int = 0,
     val totalEvents: Int = 0,
     val recentAnnouncements: List<AnnouncementEntity> = emptyList(),
@@ -52,10 +53,11 @@ class AdminViewModel @Inject constructor(
         viewModelScope.launch {
             val result = userRepository.syncCurrentUser()
             result.onSuccess { profile ->
-                val isAdmin = profile.role in listOf("admin", "moderator", "staff")
-                _uiState.update { it.copy(isAdmin = isAdmin) }
+                val adminRoles = listOf("admin", "moderator", "staff", "president", "vice_president", "secretary", "treasurer")
+                val isAdmin = profile.role.lowercase() in adminRoles
+                _uiState.update { it.copy(isAdmin = isAdmin, role = profile.role.lowercase()) }
             }.onFailure {
-                _uiState.update { it.copy(isAdmin = false) }
+                _uiState.update { it.copy(isAdmin = false, role = "") }
             }
         }
     }

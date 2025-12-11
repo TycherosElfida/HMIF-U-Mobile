@@ -22,4 +22,16 @@ object FirebaseModule {
     @Provides
     @Singleton
     fun provideFirestore(): FirebaseFirestore = FirebaseFirestore.getInstance()
+
+    @Provides
+    @Singleton
+    fun provideFirebaseStorage(): com.google.firebase.storage.FirebaseStorage = com.google.firebase.storage.FirebaseStorage.getInstance()
+
+    @Provides
+    @Singleton
+    fun provideNetworkMonitor(
+        @dagger.hilt.android.qualifiers.ApplicationContext context: android.content.Context
+    ): com.example.hmifu_mobile.util.NetworkMonitor {
+        return com.example.hmifu_mobile.util.ConnectivityManagerNetworkMonitor(context)
+    }
 }
