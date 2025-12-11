@@ -1,0 +1,170 @@
+﻿Comprehensive Strategic Roadmap and Technical Architectural Specification for HMIF U-Mobile
+1. Executive Summary and Strategic Transformation
+The digital landscape for student organizations stands at a critical inflection point. For decades, the operational model of university associations has relied on disjointed, analog, or disparate digital channels—a "Notice Board" paradigm where value is pushed passively to a disengaged audience. The Himpunan Mahasiswa Informatika (HMIF) at Ukrida faces the imperative to transcend this obsolescence. The proposed HMIF U-Mobile application represents a fundamental strategic pivot from this passive information dissemination to an active "Utility" paradigm. This transition is not merely about digitizing existing workflows; it is about engineering a digital operating system that becomes intrinsic to the daily lifecycle of the informatics student.1
+The current ecosystem is characterized by fragmentation. Student engagement is diluted across static web portals, ephemeral social media stories, and high-noise messaging groups. This results in information asymmetry, where critical academic opportunities or organizational events are missed amidst the digital noise. The strategic vision for HMIF U-Mobile is to dismantle this fragmentation by centralizing identity, academic resources, event logistics, and community engagement into a cohesive, offline-first native Android experience.1 This consolidation creates a singular, authoritative source of truth for the student body.
+From a technical perspective, this project serves a dual purpose. Beyond its operational utility, it stands as a testament to the engineering prowess of the Informatics Association. It acts as a live portfolio piece, built upon the bleeding edge of the Android ecosystem. By mandating the "Ultimate Android 2025 Starter Pack"—incorporating Kotlin 2.2.x, the K2 compiler, Jetpack Compose with Material 3 Expressive, and strictly typed architecture—the project aligns with the release of Android 16 (Baklava), ensuring longevity and maintainability.1 This report details the comprehensive execution strategy, moving from high-level psychographic analysis to granular engineering specifications, defining a trajectory that establishes HMIF U-Mobile not just as an app, but as a critical infrastructure for the student body.
+2. Psychographic Analysis and the Utility Paradigm
+2.1 The Obsolescence of the Notice Board Model
+The failure mode of most student organization applications lies in their reliance on the "Notice Board" model. This traditional approach treats the mobile application as a dedicated RSS feed—a repository for posters and announcements that are simultaneously broadcast via Instagram or WhatsApp. In an era of attention scarcity, this model lacks a unique value proposition. Students, already inundated with notifications, have no incentive to retain an app that merely duplicates content available on platforms they already frequent. The result is high churn, low daily active users (DAU), and the eventual relegation of the app to "bloatware" status.1
+2.2 The Strategic Shift to Utility
+The HMIF U-Mobile project creates retention through the "Utility" paradigm. A utility application does not beg for attention; it facilitates necessary actions. By embedding the application into the critical path of student life, usage becomes mandatory rather than optional.
+The primary mechanism for this shift is the digitization of access. By replacing the physical plastic membership card with a secure, time-rotating Digital ID, the application becomes a physical requirement for entering workshops, accessing the student lounge, or verifying voting rights.1 This single feature guarantees installation. Retention is subsequently maintained by eliminating friction. The friction of Google Forms for event RSVPs, the manual tedium of paper attendance sheets, and the opacity of lab availability are all eradicated by the application’s integrated systems.1 When an app saves a student time—by allowing one-tap registration or showing that a computer lab is free for study—it transitions from a "nice-to-have" to vital infrastructure.
+2.3 The Informatics Differentiator
+A critical strategic error in many university apps is the "one-size-fits-all" approach. HMIF U-Mobile avoids this by tailoring its feature set specifically to the psychographics of Computer Science students. The user base is technically literate, highly critical of poor UX, and driven by career readiness.
+Consequently, the application incorporates "Informatics Differentiators" that would be irrelevant in a general student council app. The profile system supports "Tech Stack Tags," allowing students to signal their proficiency in languages like Python, Kotlin, or React. This transforms the member directory from a list of names into a talent database, facilitating team formation for hackathons and capstone projects.1 Furthermore, the inclusion of a "Bank Soal" (Exam Repository) and real-time Lab Status monitoring addresses the specific resource constraints of the CS curriculum. Even the aesthetic choice of a "Dark Mode" priority is a calculated decision, aligning with the visual preferences and cultural signifiers of the developer community.1
+3. Architectural Standards: The 2025 Android Ecosystem
+The engineering integrity of HMIF U-Mobile is predicated on strict adherence to the "Golden Set" of technologies defined in the 2025 Android Starter Pack. This selection is not arbitrary; it represents a convergence of stability, performance, and forward compatibility, specifically targeting Android 16 (Baklava) and API Level 36.1
+3.1 The K2 Compiler Revolution
+The project will exclusively utilize Kotlin version 2.2.21, a decision that necessitates the mandatory adoption of the K2 compiler mode.1 The transition to K2 is not merely a version bump; it is a fundamental rewrite of the compiler frontend that alters how the codebase is analyzed and synthesized. Unlike the previous compiler generation, K2 employs unified data structures for semantic analysis, which yields profound benefits for a project of this scale.
+The primary advantage is compilation velocity. K2 offers up to a 2x acceleration in compilation speeds for clean builds compared to the Kotlin 1.9.x series. For a modularized project like HMIF U-Mobile, where deep dependency graphs can lead to significant build times, this speed enhancement drastically reduces the feedback loop during iterative development.1 Furthermore, K2 enhances type inference, allowing for more expressive Domain Specific Languages (DSLs) within the UI layer, specifically facilitating complex generic constraints in Jetpack Compose.
+To enforce the highest standards of code quality, the build configuration will enable strict mode via -Xuse-k2=true. This flag enforces rigorous checks on nullability and platform types, effectively eliminating a broad class of NullPointerExceptions that historically plagued Android development.1 Concurrently, the architecture explicitly rejects the legacy KAPT (Kotlin Annotation Processing Tool) in favor of KSP (Kotlin Symbol Processing) version 2.2.21-1.0.0. KSP operates directly on Kotlin abstract syntax trees, bypassing the costly generation of Java stubs required by KAPT, thereby aligning the build pipeline with the efficiency of the K2 compiler.1
+3.2 Build Environment and Tooling Specifications
+The robustness of the application is established at the build level. The environment is configured to meet stringent modern requirements, balancing the bleeding edge with production stability.
+Table 1: Core Build Infrastructure Specifications
+
+
+Component
+	Version
+	Strategic Rationale
+	Gradle Distribution
+	8.13
+	Utilization of version 8.13 is critical to leverage the latest daemon performance improvements and configuration caching stability, essential for fast CI/CD pipelines.1
+	Android Gradle Plugin (AGP)
+	8.13.2
+	While AGP 9.0 is in beta, 8.13.2 is selected for production stability while maintaining full support for Android 16 APIs and the K2 compiler.1
+	Compile SDK
+	36 (Android 16)
+	Targeting API 36 grants access to the latest platform capabilities, including new windowing APIs for adaptive layouts and predictive back gestures.1
+	Target SDK
+	36
+	Aligning the Target SDK with the Compile SDK ensures the app opts into the latest behavior changes and security restrictions mandated by Google Play, future-proofing the release.1
+	Min SDK
+	26 (Android 8.0)
+	Moving the minimum SDK to 26 allows for native access to java.time APIs without desugaring overhead, reducing APK size and ensuring stronger security defaults.1
+	The 16KB Page Size Paradigm:
+A critical forward-looking consideration for the 2025 era is the hardware transition to 16KB memory pages in Android 15 and 16, up from the traditional 4KB. This shift improves system performance but poses compatibility risks for native code. While HMIF U-Mobile is primarily Kotlin-based, transitive dependencies (e.g., Firebase, SQLite, Google Maps) often rely on the NDK. The build pipeline will therefore include 16kb-compat test options to validate that all native shared libraries are properly aligned. This proactive measure prevents obscure runtime crashes on newer hardware, ensuring the app is "future-ready" upon launch.1
+3.3 User Interface: Material 3 Expressive and Glassmorphism
+The user interface will be constructed entirely using Jetpack Compose, utilizing the 2025.12.00 BOM to ensure library cohesion.1 The design language will evolve beyond standard Material 3 into "Material 3 Expressive." This aesthetic prioritizes physics-based motion, spring animations, and spatial awareness to create an experience that feels organic and fluid.
+A key visual differentiator will be the implementation of Glassmorphism. This trend, characterized by frosted glass effects and layered depth, will be implemented using Modifier.blur and semi-transparent surface colors. This creates a sense of hierarchy and modernity, distinguishing the app from utilitarian corporate tools. The use of glassmorphism is particularly effective in the Digital ID card, where a holographic, shimmering effect can imply security and value.1
+Adaptive Layout Strategy:
+Given the fragmentation of the Android ecosystem, the UI architecture must support form factors ranging from compact phones to foldables and tablets. The project mandates the use of the androidx.compose.material3.adaptive library.
+* NavigationSuiteScaffold: This component dynamically adapts the navigation hierarchy. On standard phone screens, it renders a bottom navigation bar. On tablets or foldables in landscape mode, it seamlessly transitions to a navigation rail, ensuring ergonomic access to top-level destinations.1
+* ListDetailPaneScaffold: For content-heavy features like the "Event List" or "Announcement Feed," the app will utilize a canonical split-pane layout on large screens. Users will see the list on the left and detailed content on the right, eliminating the need for constant navigation transitions. On phones, this logic collapses gracefully into a traditional single-pane flow.1
+3.4 The Offline-First Architecture
+The application is architected around a strict "Offline-First" philosophy. A student in a basement lab with no Wi-Fi connectivity must still be able to access their Digital ID, view their schedule, and read downloaded resources.
+* Persistence Layer (Room 2.8.4): Room serves as the absolute source of truth for the UI. The UI never interacts directly with the network; it observes the database via Kotlin Flows. This decoupling ensures that the user interface remains responsive and populated regardless of network latency.1
+* Dependency Injection (Hilt 2.57.2): Hilt is mandated for its compile-time validation of the dependency graph. In a team environment with varying levels of experience, compile-time safety is paramount to preventing runtime crashes caused by missing bindings. Hilt's tight integration with Jetpack ViewModel and WorkManager simplifies the boilerplate required for background synchronization.1
+* Network Layer (Retrofit 3.0.0 & OkHttp 5.3.0): This stack remains the industry standard. However, serialization will be handled by kotlinx.serialization (v1.9.x) rather than Gson. This choice is driven by the K2 compiler; kotlinx.serialization is compiler-plugin based, generating adapters at compile time. This results in zero reflection overhead at runtime and smaller APK sizes, optimizing the app for performance-constrained devices.1
+* Image Loading (Coil 3.3.0): Coil is selected for its lightweight, Kotlin-first design. Crucially, it will be configured to aggressively cache images, such as event banners, to support the offline-first mandate.1
+4. Modularization and Dependency Strategy
+To ensure scalability and prevent the codebase from becoming a monolithic "ball of mud," HMIF U-Mobile will adopt a rigorous modular structure. This strategy facilitates parallel compilation, improves build caching, and enforces strict separation of concerns.1
+4.1 Vertical Slicing and Horizontal Layering
+The project structure combines vertical slicing by feature with horizontal layering for core infrastructure.
+Project Directory Structure:
+* app: The thin application entry point. It contains the DI root, the main NavHost, and the AndroidManifest.xml. It ties the features together but contains no business logic.
+* build-logic: A composite build containing custom Convention Plugins.
+* core: The shared infrastructure layer.
+   * core:model: Pure Kotlin domain models (User, Event, ThemeEnum) shared across features.
+   * core:data: Repository implementations and DataStore management.
+   * core:database: Room entities, DAOs, and TypeConverters.
+   * core:network: Retrofit services and connectivity monitors.
+   * core:designsystem: The Material 3 Theme, typography, and reusable UI atoms (Buttons, Cards).
+   * core:ai: Specialized wrappers for Gemini Nano and AICore, isolating experimental AI dependencies.1
+* feature: User-facing functional modules.
+   * feature:auth: Login, Registration, Password Recovery flow.
+   * feature:home: The Dashboard and Feed Aggregation logic.
+   * feature:events: Event listing, details, and RSVP mechanisms.
+   * feature:profile: Digital ID display, Tech Stack management, and Settings.
+   * feature:resources: Bank Soal browser and Lab Status checking.
+   * feature:admin: QR Scanner and Content Management tools.1
+4.2 Version Catalogs and Convention Plugins
+The era of managing dependencies in build.gradle ext blocks is obsolete. All dependencies will be declared in a central gradle/libs.versions.toml file. This Version Catalog provides a single source of truth, enabling automated dependency updates and ensuring consistent versions across all modules.1
+To further reduce boilerplate, the project will utilize Convention Plugins located in the build-logic directory. For example, a HmifAndroidLibraryPlugin will encapsulate the logic to apply the Android Library plugin, set the compileSdk to 36, configure the Kotlin K2 compiler options, and apply common dependencies like Timber or JUnit. This allows a feature module's build file to be concise and declarative, consisting of only a few lines applying the plugin. This infrastructure ensures that upgrading the target SDK or Kotlin version in the future requires modifying only a single file, propagating the change instantly across the entire 15+ module graph.1
+5. Data Engineering and Synchronization Logic
+The application's reliability hinges on its data handling. The architecture employs a dual-model approach, bridging a JSON-based NoSQL backend with a relational local cache.
+5.1 The Dual-Schema Strategy
+* Backend (Firestore): Selected for its rapid development cycle and real-time capabilities. Collections are denormalized to optimize for read performance.
+   * users/{uid}: Stores profile data, roles, and the encrypted QR secret.
+   * events/{eventId}: Stores event metadata.
+   * registrations/{regId}: A separate collection linking users to events. This separation allows for efficient querying of "My Events" without downloading the entire event payload.1
+* Local (Room): Acts as the relational mirror.
+   * UserEntity: A direct mapping of the user profile. Complex fields like "roles" are flattened into JSON strings via TypeConverters.
+   * EventEntity: Contains a derived isRegistered boolean field, which is populated during the synchronization process by cross-referencing the registrations collection.1
+5.2 Unidirectional Data Flow (UDF)
+The application enforces a strict UDF to maintain state consistency.
+1. Read Path: The UI layer (Compose) observes a StateFlow exposed by the ViewModel. The ViewModel, in turn, observes a Flow from the Repository. The Repository exposes a Flow directly from the Room database. This means the UI always renders what is on the disk.
+2. Write Path: User actions trigger a ViewModel method, which calls the Repository. The Repository performs the network operation via Retrofit or Firestore. Upon success, the Repository writes the new data into Room.
+3. The Cycle: The write to Room triggers the Flow emission observed in the Read Path, automatically updating the UI. This cyclical flow ensures that the UI does not need to manage network states directly; it simply reacts to the database.1
+6. Functional Specification and Deep Dives
+6.1 Feature 1: The Secure Digital Identity
+The Digital Membership Card is the high-stakes feature that drives daily retention. To serve as a valid replacement for a physical ID, it must be secure against forgery.
+The TOTP Mechanism:
+A static QR code is vulnerable to replay attacks—a student could screenshot their ID and send it to a non-member. To mitigate this, the app implements a custom Time-based One-Time Password (TOTP) system.
+* Secret Generation: Upon account creation, the server generates a cryptographically secure random secret, distinct from the user's password, and stores it in the user's Firestore document (encrypted).
+* Secure Storage: On login, this secret is downloaded and stored in the Android Keystore system via EncryptedSharedPreferences. It is never accessible to other apps or readily available to the user.
+* QR Payload Generation: The QR code encodes a payload string: ProtocolVersion|NIM|Timestamp|HMAC.
+   * The Timestamp is the current Unix time floored to the nearest 30-second interval.
+   * The HMAC is calculated using SHA-256: $HMAC(NIM + Timestamp, UserSecret)$.
+* Validation: The Admin App's scanner reads the QR. It independently calculates the HMAC using the timestamp from the QR. To account for clock drift between devices, the validator accepts timestamps within a window of $\pm 1$ interval (i.e., previous, current, or next 30 seconds). If the HMAC matches and the timestamp is fresh, the ID is valid.1
+6.2 Feature 2: Event Management with Optimistic UI
+The Event Management system handles the full lifecycle of student activities.
+* Optimistic RSVP: When a user clicks "Register," the UI immediately updates to show a "Registered" state, providing instant feedback. The repository launches a WorkManager job to perform the network request. If the device is offline, the job is queued with a constraint NetworkType.CONNECTED. This ensures the user captures their intent even in a connectivity dead zone, and the server is updated once they regain signal.1
+* Tech Stack Integration: When registering for Hackathons, the user's "Tech Stack Tags" (e.g., "Python", "Design") are implicitly associated with the registration. This allows organizers to visualize the skill distribution of attendees and facilitate balanced team formation.1
+6.3 Feature 3: Informatics Resource Hub
+This feature specifically targets the academic needs of the CS student.
+* Bank Soal (Exam Repository): This is a browsable library of past exam papers. Metadata (Subject, Semester, Year) is stored in Room. The actual PDF files are in Firebase Storage. The ResourceRepository utilizes OkHttp's cache controls to download the PDF on first open and serve it from the local file system on subsequent access, saving bandwidth and enabling offline study.1
+* Real-Time Lab Status: A dedicated Firestore document tracks the status of the computer labs (e.g., "Lab 301: Booked for Algorithms Class until 14:00"). The app employs a Firestore real-time listener to push updates to the dashboard instantly. This addresses the common pain point of students walking to a lab only to find it occupied.1
+7. Security Architecture and Identity Management
+Security is not an afterthought; it is woven into the application's fabric.
+7.1 Role-Based Access Control (RBAC)
+The application serves two distinct user groups: Members and Admins.
+* Client-Side Guarding: The User object contains a list of roles. The NavHost in the MainActivity checks these roles during initialization. The route to feature:admin is only added to the navigation graph if the admin role is present. This prevents unauthorized users from even navigating to the admin screens.
+* Server-Side Enforcement: Client-side checks are insufficient for security. Firestore Security Rules are implemented to enforce RBAC at the database level. For example, a rule for the announcements collection would stipulate: allow write: if request.auth.uid!= null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.roles.hasAny(['admin']). This ensures that even if a malicious user bypasses the UI, they cannot inject data.1
+7.2 Cryptographic Best Practices
+* Data at Rest: All sensitive local data, particularly the QR TOTP secret and auth tokens, are stored using androidx.security.crypto. This library wraps the Android Keystore, ensuring that encryption keys are managed in hardware where available.
+* Traffic Security: The app enforces TLS 1.3 for all network connections. The network security configuration explicitly disallows cleartext traffic.
+* Code Obfuscation: The release build configuration employs R8 full-mode obfuscation. Specific ProGuard rules are applied to aggressively obfuscate the QrGenerator and TotpUtils classes to deter reverse engineering of the ID generation logic.1
+8. Implementation Roadmap
+The project execution is structured into four distinct phases, prioritizing the "Utility" paradigm to drive early adoption.
+Phase 1: The Foundation and MVP (Weeks 1-4)
+The objective is to establish the digital infrastructure and replace the manual "sign-up sheet."
+* Infrastructure: Setup of the Git repository, Version Catalog, and CI/CD pipeline.
+* Feature Auth: Implementation of Login, Registration, and University Email Verification to guarantee member authenticity.
+* Feature Home: Deployment of the Announcement Feed with basic category filtering.
+* Feature Events: Launch of the Event List and Detail screens with basic RSVP functionality.
+* Deliverable: A functional APK allowing users to log in, view news, and register for events.1
+Phase 2: Operational Excellence (Weeks 5-8)
+This phase introduces the "Hook" features that compel daily usage.
+* Digital Identity: Implementation of the TOTP-based QR Code logic and the corresponding Admin Scanner in feature:admin.
+* My Events: A dashboard for students to track their registered and attended activities.
+* Push Notifications: Integration of Firebase Cloud Messaging for event reminders, coupled with deep linking to specific event details.
+* Deliverable: The physical membership card is officially deprecated; event check-in moves entirely digital.1
+Phase 3: The Informatics Edge (Weeks 9-12)
+This phase focuses on the specific needs of the Computer Science demographic.
+* Resources: Deployment of the Bank Soal repository with PDF caching logic.
+* Lab Status: Implementation of the real-time lab availability widget.
+* Profile Enhancement: Addition of Tech Stack Tags and GitHub profile linking.
+* Dark Mode: Full "Edge-to-Edge" dark theme implementation using Material 3 dynamic colors.
+* Deliverable: The app becomes an academic tool, not just an organizational one.1
+Phase 4: Polish and Future-Proofing (Weeks 13+)
+The final phase focuses on refinement and advanced technological integration.
+* Gamification: Introduction of an automated points and badges system based on event attendance.
+* On-Device AI: Integration of Gemini Nano via AICore (on supported devices) to provide one-sentence summaries of lengthy event descriptions.1
+* Performance: Generation of Baseline Profiles to optimize startup time.
+* Compliance: Final validation of 16KB page size compatibility for Android 16 readiness.
+* Deliverable: A production-ready release candidate submitted to the Play Store internal track.1
+9. Quality Assurance and DevOps Engineering
+A professional engineering culture requires rigorous automated testing and deployment pipelines.
+9.1 The CI/CD Pipeline
+A GitHub Actions pipeline acts as the gatekeeper for code quality.
+* Continuous Integration: Every Pull Request triggers a workflow that runs ktlintCheck (style enforcement), detekt (static analysis), and testDebugUnitTest (logic verification).
+* Automated UI Testing: A nightly job runs connectedAndroidTest on a virtual device to verify critical user flows (e.g., Login -> Home -> Event Detail) using Espresso or Compose UI Test.
+* Secret Management: No API keys are committed to the repository. The CI pipeline injects secrets (Firebase Config, Maps API Key) from GitHub Secrets into local.properties or environment variables during the build process.1
+9.2 Performance Engineering
+* Baseline Profiles: To eliminate "first-run jank" caused by JIT compilation, the project includes a benchmark module. This module generates a Baseline Profile (baseline-prof.txt) that pre-compiles critical hot paths (App Startup, Navigation to Digital ID) into machine code at install time. This is critical for the "I need to show my ID now" use case.1
+* Leak Detection: LeakCanary is enabled in debug builds to automatically detect and report memory leaks, ensuring the app remains stable during long sessions.
+* Dependency Auditing: The build pipeline includes steps to analyze third-party libraries for known security vulnerabilities (CVEs) and license compliance.
+10. Strategic Outlook
+The HMIF U-Mobile application is designed not as a static product, but as an evolving platform. The modular architecture provides a foundation for future expansions such as an Alumni Directory for mentorship, a Merchandise Store with integrated payments, or a Co-Curricular Transcript system. By rigorously adhering to the "Ultimate Android 2025 Starter Pack," the Informatics Student Association ensures that this software asset remains maintainable, scalable, and a point of pride for the organization for years to come. This project transforms the association from a passive administrative body into a digital-first enabler of student success.1
+Works cited
+1. Deep Research Claude.txt

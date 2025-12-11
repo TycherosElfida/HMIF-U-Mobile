@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "332503765882",
+    "project_id": "hmif-ukrida-mobile",
+    "storage_bucket": "hmif-ukrida-mobile.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:332503765882:android:ecacb9fa0dfa75e2b23cc3",
+        "android_client_info": {
+          "package_name": "com.example.hmifu_mobile"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDwXP_k6i0Ijlga3xVFCQa7bWNrzI_GmuA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
