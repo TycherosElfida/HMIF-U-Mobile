@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "319534365914",
+    "project_id": "hmif-u-mobile-df52a",
+    "storage_bucket": "hmif-u-mobile-df52a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:319534365914:android:01b5a3f89a565e58b3b9e3",
+        "android_client_info": {
+          "package_name": "com.example.hmifu_mobile"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC_tfAU0KgXZ33fjwnQfa4U1e8CImketZg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

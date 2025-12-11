@@ -8,10 +8,10 @@
             <InsightsFilterSettings>
               <option name="connection">
                 <ConnectionSetting>
-                  <option name="appId" value="PLACEHOLDER" />
-                  <option name="mobileSdkAppId" value="" />
-                  <option name="projectId" value="" />
-                  <option name="projectNumber" value="" />
+                  <option name="appId" value="com.example.hmifu_mobile" />
+                  <option name="mobileSdkAppId" value="1:319534365914:android:01b5a3f89a565e58b3b9e3" />
+                  <option name="projectId" value="hmif-u-mobile-df52a" />
+                  <option name="projectNumber" value="319534365914" />
                 </ConnectionSetting>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />
