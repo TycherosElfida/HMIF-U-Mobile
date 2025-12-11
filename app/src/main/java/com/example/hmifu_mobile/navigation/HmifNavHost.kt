@@ -127,7 +127,11 @@ fun HmifNavHost(modifier: Modifier = Modifier) {
                     }
                 }
             ) {
-                PlaceholderScreen(title = "Events")
+                com.example.hmifu_mobile.feature.events.EventsScreen(
+                    onEventClick = { eventId ->
+                        navController.navigate("event_detail/$eventId")
+                    }
+                )
             }
         }
 

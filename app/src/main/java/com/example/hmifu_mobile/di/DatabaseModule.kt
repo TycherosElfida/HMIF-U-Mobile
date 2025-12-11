@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Room
 import com.example.hmifu_mobile.data.local.HmifDatabase
 import com.example.hmifu_mobile.data.local.dao.AnnouncementDao
+import com.example.hmifu_mobile.data.local.dao.EventDao
 import com.example.hmifu_mobile.data.local.dao.UserDao
 import dagger.Module
 import dagger.Provides
@@ -38,4 +39,8 @@ object DatabaseModule {
     @Provides
     @Singleton
     fun provideAnnouncementDao(database: HmifDatabase): AnnouncementDao = database.announcementDao()
+
+    @Provides
+    @Singleton
+    fun provideEventDao(database: HmifDatabase): EventDao = database.eventDao()
 }
