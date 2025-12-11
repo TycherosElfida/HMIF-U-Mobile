@@ -104,7 +104,7 @@ fun HmifNavHost(modifier: Modifier = Modifier) {
                     }
                 }
             ) {
-                PlaceholderScreen(title = "Home")
+                com.example.hmifu_mobile.feature.home.HomeScreen()
             }
         }
 

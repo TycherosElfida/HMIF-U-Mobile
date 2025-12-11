@@ -3,6 +3,7 @@ package com.example.hmifu_mobile.di
 import android.content.Context
 import androidx.room.Room
 import com.example.hmifu_mobile.data.local.HmifDatabase
+import com.example.hmifu_mobile.data.local.dao.AnnouncementDao
 import com.example.hmifu_mobile.data.local.dao.UserDao
 import dagger.Module
 import dagger.Provides
@@ -26,9 +27,15 @@ object DatabaseModule {
         context,
         HmifDatabase::class.java,
         "hmif_database"
-    ).build()
+    )
+        .fallbackToDestructiveMigration(dropAllTables = true)
+        .build()
 
     @Provides
     @Singleton
     fun provideUserDao(database: HmifDatabase): UserDao = database.userDao()
+
+    @Provides
+    @Singleton
+    fun provideAnnouncementDao(database: HmifDatabase): AnnouncementDao = database.announcementDao()
 }
