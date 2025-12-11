@@ -4,9 +4,11 @@ import androidx.room.Database
 import androidx.room.RoomDatabase
 import com.example.hmifu_mobile.data.local.dao.AnnouncementDao
 import com.example.hmifu_mobile.data.local.dao.EventDao
+import com.example.hmifu_mobile.data.local.dao.EventRegistrationDao
 import com.example.hmifu_mobile.data.local.dao.UserDao
 import com.example.hmifu_mobile.data.local.entity.AnnouncementEntity
 import com.example.hmifu_mobile.data.local.entity.EventEntity
+import com.example.hmifu_mobile.data.local.entity.EventRegistrationEntity
 import com.example.hmifu_mobile.data.local.entity.UserEntity
 
 /**
@@ -17,13 +19,16 @@ import com.example.hmifu_mobile.data.local.entity.UserEntity
     entities = [
         UserEntity::class,
         AnnouncementEntity::class,
-        EventEntity::class
+        EventEntity::class,
+        EventRegistrationEntity::class
     ],
-    version = 3,
+    version = 4,
     exportSchema = false
 )
 abstract class HmifDatabase : RoomDatabase() {
     abstract fun userDao(): UserDao
     abstract fun announcementDao(): AnnouncementDao
     abstract fun eventDao(): EventDao
+    abstract fun eventRegistrationDao(): EventRegistrationDao
 }
+

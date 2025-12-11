@@ -170,6 +170,16 @@ fun HmifNavHost(modifier: Modifier = Modifier) {
                 onNavigateBack = { navController.popBackStack() }
             )
         }
+
+        // My Events screen (no bottom bar)
+        composable("my_events") {
+            com.example.hmifu_mobile.feature.events.MyEventsScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onEventClick = { eventId ->
+                    navController.navigate("event_detail/$eventId")
+                }
+            )
+        }
     }
 }
 
