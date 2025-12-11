@@ -154,6 +154,7 @@ fun HmifNavHost(modifier: Modifier = Modifier) {
                 com.example.hmifu_mobile.feature.profile.ProfileScreen(
                     onEditProfile = { /* TODO: Navigate to edit profile */ },
                     onSettings = { navController.navigate("settings") },
+                    onMemberCard = { navController.navigate("member_card") },
                     onLogout = {
                         authViewModel.logout()
                         navController.navigate(Screen.Login.route) {

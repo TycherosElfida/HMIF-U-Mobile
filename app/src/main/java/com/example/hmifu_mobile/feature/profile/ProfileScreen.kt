@@ -18,6 +18,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.QrCode
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -55,6 +56,7 @@ import com.example.hmifu_mobile.data.repository.UserProfile
 fun ProfileScreen(
     onEditProfile: () -> Unit = {},
     onSettings: () -> Unit = {},
+    onMemberCard: () -> Unit = {},
     onLogout: () -> Unit,
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
@@ -111,6 +113,7 @@ fun ProfileScreen(
                 ProfileContent(
                     profile = uiState.profile!!,
                     onEditProfile = onEditProfile,
+                    onMemberCard = onMemberCard,
                     onLogout = viewModel::logout,
                     modifier = Modifier.padding(padding)
                 )
@@ -134,6 +137,7 @@ fun ProfileScreen(
 private fun ProfileContent(
     profile: UserProfile,
     onEditProfile: () -> Unit,
+    onMemberCard: () -> Unit,
     onLogout: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -203,6 +207,18 @@ private fun ProfileContent(
             Icon(Icons.Default.Edit, contentDescription = null)
             Spacer(modifier = Modifier.width(8.dp))
             Text("Edit Profile")
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Member Card button
+        Button(
+            onClick = onMemberCard,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Icon(Icons.Default.QrCode, contentDescription = null)
+            Spacer(modifier = Modifier.width(8.dp))
+            Text("My Member Card")
         }
 
         Spacer(modifier = Modifier.height(24.dp))

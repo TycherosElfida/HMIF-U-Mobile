@@ -42,9 +42,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import com.example.hmifu_mobile.R
 import com.example.hmifu_mobile.ui.components.LoadingSkeletonList
 import com.example.hmifu_mobile.ui.components.ShimmerBox
 
@@ -143,21 +146,15 @@ private fun MemberCardContent(uiState: MemberCardUiState) {
                     .padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // HMIF Logo/Badge
-                Box(
+                // HMIF Logo
+                Image(
+                    painter = painterResource(id = R.drawable.logo_hmif),
+                    contentDescription = "HMIF Logo",
                     modifier = Modifier
                         .size(80.dp)
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.primary),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "HMIF",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onPrimary
-                    )
-                }
+                        .clip(CircleShape),
+                    contentScale = ContentScale.Fit
+                )
 
                 Spacer(modifier = Modifier.height(16.dp))
 
