@@ -42,6 +42,7 @@ import androidx.compose.ui.unit.dp
 import com.example.hmifu_mobile.data.repository.PollRepository
 import kotlinx.coroutines.launch
 
+@Suppress("unused") // Screen is used via navigation but lint doesn't detect it
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreatePollScreen(

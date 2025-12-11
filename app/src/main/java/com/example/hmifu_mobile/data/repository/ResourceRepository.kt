@@ -17,6 +17,7 @@ import javax.inject.Singleton
  * Repository for Bank Soal (Exam Repository) operations.
  * Syncs resources from Firestore to Room.
  */
+@Suppress("unused") // Public API methods kept for future use
 @Singleton
 class ResourceRepository @Inject constructor(
     private val resourceDao: ResourceDao,
@@ -78,7 +79,7 @@ class ResourceRepository @Inject constructor(
                                 downloadCount = doc.getLong("downloadCount")?.toInt() ?: 0,
                                 syncedAt = System.currentTimeMillis()
                             )
-                        } catch (e: Exception) {
+                        } catch (_: Exception) {
                             null
                         }
                     }

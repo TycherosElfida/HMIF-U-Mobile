@@ -125,7 +125,7 @@ fun HmifNavHost(modifier: Modifier = Modifier) {
         composable(
             route = "event_detail/{eventId}",
             arguments = listOf(navArgument("eventId") { type = NavType.StringType })
-        ) { backStackEntry ->
+        ) { _ ->
             com.example.hmifu_mobile.feature.events.EventDetailScreen(
                 onNavigateBack = { navController.popBackStack() }
             )

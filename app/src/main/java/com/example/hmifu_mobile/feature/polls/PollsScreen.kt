@@ -142,7 +142,7 @@ private fun PollCard(
                     votes = obj.getInt("votes")
                 )
             }
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             emptyList()
         }
     }

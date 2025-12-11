@@ -21,6 +21,7 @@ import javax.inject.Singleton
  * Repository for Poll operations.
  * Syncs polls from Firestore to Room and handles voting.
  */
+@Suppress("unused", "UNCHECKED_CAST") // Public API methods kept for future use
 @Singleton
 class PollRepository @Inject constructor(
     private val pollDao: PollDao,
@@ -97,7 +98,7 @@ class PollRepository @Inject constructor(
                                 userVotedOptionId = userVotedOptionId,
                                 syncedAt = System.currentTimeMillis()
                             )
-                        } catch (e: Exception) {
+                        } catch (_: Exception) {
                             null
                         }
                     }
