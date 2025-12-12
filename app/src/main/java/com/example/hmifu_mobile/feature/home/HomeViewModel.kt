@@ -26,6 +26,7 @@ data class HomeUiState(
     val userName: String = "",
     val userNim: String = "",
     val userAngkatan: String = "",
+    val userPhotoUrl: String? = null,
     val userPoints: Int = 0,
     val hasUnreadNotifications: Boolean = false
 )
@@ -56,6 +57,7 @@ class HomeViewModel @Inject constructor(
                         userName = profile.name.ifBlank { "Member" },
                         userNim = profile.nim,
                         userAngkatan = profile.angkatan,
+                        userPhotoUrl = profile.photoUrl,
                         userPoints = 0 // TODO: Implement points system
                     )
                 }
@@ -69,6 +71,7 @@ class HomeViewModel @Inject constructor(
                             userName = user.name.ifBlank { "Member" },
                             userNim = user.nim,
                             userAngkatan = user.angkatan,
+                            userPhotoUrl = user.photoUrl,
                             userPoints = user.points
                         )
                     }

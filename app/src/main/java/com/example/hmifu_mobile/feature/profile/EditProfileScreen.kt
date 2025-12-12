@@ -17,6 +17,7 @@ import androidx.compose.material.icons.filled.Code
 import androidx.compose.material.icons.filled.Numbers
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.School
+import androidx.compose.material.icons.filled.Image
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -47,6 +48,7 @@ import com.example.hmifu_mobile.ui.components.StaggeredAnimatedItem
 import com.example.hmifu_mobile.ui.theme.GradientEnd
 import com.example.hmifu_mobile.ui.theme.HmifBlue
 import com.example.hmifu_mobile.ui.theme.HmifOrange
+import com.example.hmifu_mobile.ui.theme.HmifPurple
 import com.example.hmifu_mobile.ui.theme.HmifTheme
 
 /**
@@ -130,8 +132,18 @@ fun EditProfileScreen(
                             ) {
                                 Text(
                                     text = "Personal Information",
-                                    style = MaterialTheme.typography.titleSmall,
                                     fontWeight = FontWeight.SemiBold
+                                )
+
+                                // Photo URL
+                                StyledTextField(
+                                    value = uiState.photoUrl,
+                                    onValueChange = viewModel::updatePhotoUrl,
+                                    label = "Profile Picture URL",
+                                    placeholder = "https://...",
+                                    icon = Icons.Default.Image,
+                                    iconColor = HmifPurple,
+                                    enabled = !uiState.isSaving
                                 )
 
                                 // Name

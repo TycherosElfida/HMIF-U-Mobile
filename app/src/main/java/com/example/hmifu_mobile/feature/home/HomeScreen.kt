@@ -1,6 +1,7 @@
 package com.example.hmifu_mobile.feature.home
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -21,6 +22,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material.icons.rounded.ArrowForward
 import androidx.compose.material.icons.rounded.Book
@@ -134,6 +136,7 @@ fun HomeScreen(
                         nim = uiState.userNim.ifBlank { "412022XXX" },
                         angkatan = uiState.userAngkatan.ifBlank { "2022" },
                         points = uiState.userPoints,
+                        photoUrl = uiState.userPhotoUrl,
                         onClick = onMemberCardClick
                     )
                 }
@@ -286,6 +289,7 @@ private fun DigitalMembershipCard(
     nim: String,
     angkatan: String,
     points: Int,
+    photoUrl: String?,
     onClick: () -> Unit
 ) {
     HeroGlassmorphicCard(
@@ -338,20 +342,30 @@ private fun DigitalMembershipCard(
                 }
             }
 
-            // Right side - QR Code placeholder
+            // Right side - Profile Picture (replacing QR Code)
             Box(
                 modifier = Modifier
                     .size(HmifTheme.sizes.qrCodeSize)
                     .clip(RoundedCornerShape(HmifTheme.cornerRadius.md))
-                    .background(Color.White),
+                    .background(Color.White.copy(alpha = 0.2f))
+                    .border(2.dp, Color.White.copy(alpha = 0.5f), RoundedCornerShape(HmifTheme.cornerRadius.md)),
                 contentAlignment = Alignment.Center
             ) {
-                PulsingElement {
-                    Text(
-                        text = "QR",
-                        style = MaterialTheme.typography.headlineMedium,
-                        color = GradientStart,
-                        fontWeight = FontWeight.Bold
+                if (!photoUrl.isNullOrBlank()) {
+                    com.example.hmifu_mobile.ui.components.ImageKitImageWithAspectRatio(
+                        path = photoUrl,
+                        contentDescription = "Profile Picture",
+                        modifier = Modifier.fillMaxSize(),
+                        height = 100f,
+                        aspectRatioWidth = 1,
+                        aspectRatioHeight = 1
+                    )
+                } else {
+                    Icon(
+                        imageVector = Icons.Default.Person,
+                        contentDescription = null,
+                        modifier = Modifier.size(48.dp),
+                        tint = Color.White
                     )
                 }
             }

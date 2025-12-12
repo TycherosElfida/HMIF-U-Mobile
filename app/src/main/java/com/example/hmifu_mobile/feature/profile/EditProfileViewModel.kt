@@ -21,6 +21,7 @@ data class EditProfileUiState(
     val angkatan: String = "",
     val concentration: String = "",
     val techStack: String = "",
+    val photoUrl: String = "",
     val isLoading: Boolean = true,
     val isSaving: Boolean = false,
     val isSuccess: Boolean = false,
@@ -57,7 +58,8 @@ class EditProfileViewModel @Inject constructor(
                             nim = profile.nim,
                             angkatan = profile.angkatan,
                             concentration = profile.concentration,
-                            techStack = profile.techStack
+                            techStack = profile.techStack,
+                            photoUrl = profile.photoUrl ?: ""
                         )
                     }
                 }.onFailure { e ->
@@ -99,6 +101,10 @@ class EditProfileViewModel @Inject constructor(
         _uiState.update { it.copy(techStack = techStack) }
     }
 
+    fun updatePhotoUrl(photoUrl: String) {
+        _uiState.update { it.copy(photoUrl = photoUrl) }
+    }
+
     fun saveProfile() {
         if (!uiState.value.isValid) {
             _uiState.update { it.copy(errorMessage = "Please fill in required fields") }
@@ -109,15 +115,17 @@ class EditProfileViewModel @Inject constructor(
 
         viewModelScope.launch {
             try {
+                val currentUid = userRepository.currentUserId ?: return@launch
                 val state = _uiState.value
                 val updatedProfile = UserProfile(
-                    uid = "", // Will be set by repository
-                    email = "", // Will be preserved by repository
+                    uid = currentUid, // Set the correct UID
+                    email = userRepository.currentUserEmail ?: "", // Set current email
                     name = state.name,
                     nim = state.nim,
                     angkatan = state.angkatan,
                     concentration = state.concentration,
-                    techStack = state.techStack
+                    techStack = state.techStack,
+                    photoUrl = state.photoUrl.ifBlank { null }
                 )
 
                 val result = userRepository.updateProfile(updatedProfile)
