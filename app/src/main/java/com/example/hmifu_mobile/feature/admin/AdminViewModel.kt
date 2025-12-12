@@ -24,6 +24,7 @@ data class AdminUiState(
     val isAdmin: Boolean = false,
     val isTreasurer: Boolean = false,
     val isPresident: Boolean = false,
+    val isVicePresident: Boolean = false,
     val isSecretary: Boolean = false,
     val totalAnnouncements: Int = 0,
     val totalEvents: Int = 0,
@@ -59,10 +60,11 @@ class AdminViewModel @Inject constructor(
                 val isAdmin = profile.role.lowercase() in fullAdminRoles
                 val isTreasurer = profile.role.lowercase() == "treasurer"
                 val isPresident = profile.role.lowercase() == "president"
+                val isVicePresident = profile.role.lowercase() == "vice_president"
                 val isSecretary = profile.role.lowercase() == "secretary"
-                _uiState.update { it.copy(isAdmin = isAdmin, isTreasurer = isTreasurer, isPresident = isPresident, isSecretary = isSecretary) }
+                _uiState.update { it.copy(isAdmin = isAdmin, isTreasurer = isTreasurer, isPresident = isPresident, isVicePresident = isVicePresident, isSecretary = isSecretary) }
             }.onFailure {
-                _uiState.update { it.copy(isAdmin = false, isTreasurer = false, isPresident = false, isSecretary = false) }
+                _uiState.update { it.copy(isAdmin = false, isTreasurer = false, isPresident = false, isVicePresident = false, isSecretary = false) }
             }
         }
     }

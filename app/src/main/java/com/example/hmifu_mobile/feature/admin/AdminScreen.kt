@@ -186,8 +186,8 @@ fun AdminScreen(
                     }
                     }
 
-                // Finance Section (Treasurer & President)
-                if (uiState.isTreasurer || uiState.isPresident) {
+                // Finance Section (Treasurer, President, Vice President)
+                if (uiState.isTreasurer || uiState.isPresident || uiState.isVicePresident) {
                     item {
                         StaggeredAnimatedItem(index = 1) {
                             GlassmorphicCard(
@@ -236,8 +236,8 @@ fun AdminScreen(
                     }
                 }
 
-                // Secretariat Section (Secretary & President)
-                if (uiState.isSecretary || uiState.isPresident) {
+                // Secretariat Section (Secretary, President, Vice President)
+                if (uiState.isSecretary || uiState.isPresident || uiState.isVicePresident) {
                     item {
                         StaggeredAnimatedItem(index = 2) {
                             GlassmorphicCard(
@@ -286,8 +286,8 @@ fun AdminScreen(
                     }
                 }
 
-                // User Management (President Only)
-                if (uiState.isPresident) {
+                // User Management (President & Vice President)
+                if (uiState.isPresident || uiState.isVicePresident) {
                     item {
                         StaggeredAnimatedItem(index = 3) {
                             GlassmorphicCard(
