@@ -85,7 +85,7 @@ fun CreateEventScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = "Create Event",
+                        text = if (uiState.id != null) "Edit Event" else "Create Event",
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold
                     )
@@ -129,6 +129,17 @@ fun CreateEventScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(150.dp),
+                enabled = !uiState.isLoading
+            )
+
+            // Image URL (ImageKit)
+            OutlinedTextField(
+                value = uiState.imageUrl,
+                onValueChange = viewModel::updateImageUrl,
+                label = { Text("Image URL (Optional)") },
+                placeholder = { Text("https://ik.imagekit.io/...") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
                 enabled = !uiState.isLoading
             )
 
@@ -240,12 +251,12 @@ fun CreateEventScreen(
 
             // Submit button
             LoadingButton(
-                onClick = viewModel::createEvent,
+                onClick = viewModel::saveEvent,
                 enabled = uiState.isValid && !uiState.isLoading,
                 isLoading = uiState.isLoading,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Create Event")
+                Text(if (uiState.id != null) "Save Changes" else "Create Event")
             }
         }
     }

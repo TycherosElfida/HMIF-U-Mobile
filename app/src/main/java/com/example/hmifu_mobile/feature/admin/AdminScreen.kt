@@ -21,7 +21,10 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Event
 import androidx.compose.material.icons.filled.People
+import androidx.compose.material.icons.filled.Description
+import androidx.compose.material.icons.filled.SupervisorAccount
 import androidx.compose.material.icons.rounded.AdminPanelSettings
+import androidx.compose.material.icons.rounded.AccountBalanceWallet
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -46,6 +49,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
@@ -62,6 +66,7 @@ import com.example.hmifu_mobile.ui.theme.HmifBlue
 import com.example.hmifu_mobile.ui.theme.HmifOrange
 import com.example.hmifu_mobile.ui.theme.HmifPurple
 import com.example.hmifu_mobile.ui.theme.HmifTheme
+import com.example.hmifu_mobile.ui.theme.Success
 
 /**
  * Admin Screen - Premium 2025 Design
@@ -75,9 +80,13 @@ import com.example.hmifu_mobile.ui.theme.HmifTheme
 @Composable
 fun AdminScreen(
     onNavigateBack: () -> Unit = {},
-    onCreateAnnouncement: () -> Unit = {},
-    onCreateEvent: () -> Unit = {},
+    onManageAnnouncements: () -> Unit = {},
+    onEditAnnouncement: (String) -> Unit = {},
+    onManageEvents: () -> Unit = {},
     onViewRegistrants: (String) -> Unit = {},
+    onFinance: () -> Unit = {},
+    onSecretariat: () -> Unit = {},
+    onManageUsers: () -> Unit = {},
     viewModel: AdminViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -130,13 +139,13 @@ fun AdminScreen(
             FabMenu(
                 showMenu = showFabMenu,
                 onToggle = { showFabMenu = !showFabMenu },
-                onCreateAnnouncement = {
+                onManageAnnouncements = {
                     showFabMenu = false
-                    onCreateAnnouncement()
+                    onManageAnnouncements()
                 },
-                onCreateEvent = {
+                onManageEvents = {
                     showFabMenu = false
-                    onCreateEvent()
+                    onManageEvents()
                 }
             )
         },
@@ -175,11 +184,161 @@ fun AdminScreen(
                             )
                         }
                     }
+                    }
+
+                // Finance Section (Treasurer & President)
+                if (uiState.isTreasurer || uiState.isPresident) {
+                    item {
+                        StaggeredAnimatedItem(index = 1) {
+                            GlassmorphicCard(
+                                modifier = Modifier.fillMaxWidth(),
+                                onClick = onFinance,
+                                cornerRadius = HmifTheme.cornerRadius.md
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(HmifTheme.spacing.md)
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(48.dp)
+                                            .clip(RoundedCornerShape(HmifTheme.cornerRadius.md))
+                                            .background(Success.copy(alpha = 0.15f)),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Rounded.AccountBalanceWallet,
+                                            contentDescription = null,
+                                            tint = Success,
+                                            modifier = Modifier.size(26.dp)
+                                        )
+                                    }
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text(
+                                            text = "Finance Dashboard",
+                                            style = MaterialTheme.typography.titleMedium,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                        Text(
+                                            text = "Manage Income & Expenses",
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                    Icon(
+                                        Icons.AutoMirrored.Filled.ArrowBack, // Changed to ArrowForward in full impl or just reused icon
+                                        contentDescription = "Go",
+                                        modifier = Modifier.rotate(180f)
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Secretariat Section (Secretary & President)
+                if (uiState.isSecretary || uiState.isPresident) {
+                    item {
+                        StaggeredAnimatedItem(index = 2) {
+                            GlassmorphicCard(
+                                modifier = Modifier.fillMaxWidth(),
+                                onClick = onSecretariat,
+                                cornerRadius = HmifTheme.cornerRadius.md
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(HmifTheme.spacing.md)
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(48.dp)
+                                            .clip(RoundedCornerShape(HmifTheme.cornerRadius.md))
+                                            .background(HmifBlue.copy(alpha = 0.15f)),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Description, // Requires import
+                                            contentDescription = null,
+                                            tint = HmifBlue,
+                                            modifier = Modifier.size(26.dp)
+                                        )
+                                    }
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text(
+                                            text = "Secretariat Dashboard",
+                                            style = MaterialTheme.typography.titleMedium,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                        Text(
+                                            text = "Proposals & LPJ Management",
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                    Icon(
+                                        Icons.AutoMirrored.Filled.ArrowBack, // Changed to ArrowForward in full impl or just reused icon
+                                        contentDescription = "Go",
+                                        modifier = Modifier.rotate(180f)
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // User Management (President Only)
+                if (uiState.isPresident) {
+                    item {
+                        StaggeredAnimatedItem(index = 3) {
+                            GlassmorphicCard(
+                                modifier = Modifier.fillMaxWidth(),
+                                onClick = onManageUsers,
+                                cornerRadius = HmifTheme.cornerRadius.md
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(HmifTheme.spacing.md)
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(48.dp)
+                                            .clip(RoundedCornerShape(HmifTheme.cornerRadius.md))
+                                            .background(HmifPurple.copy(alpha = 0.15f)),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.SupervisorAccount,
+                                            contentDescription = null,
+                                            tint = HmifPurple,
+                                            modifier = Modifier.size(26.dp)
+                                        )
+                                    }
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text(
+                                            text = "Manage Users",
+                                            style = MaterialTheme.typography.titleMedium,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                        Text(
+                                            text = "Assign Roles (President, Treasurer, etc.)",
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                    Icon(
+                                        Icons.AutoMirrored.Filled.ArrowBack, // Changed to ArrowForward in full impl or just reused icon
+                                        contentDescription = "Go",
+                                        modifier = Modifier.rotate(180f)
+                                    )
+                                }
+                            }
+                        }
+                    }
                 }
 
                 // Recent announcements
                 item {
-                    StaggeredAnimatedItem(index = 1) {
+                    StaggeredAnimatedItem(index = 3) {
                         SectionHeader(title = "📢 Recent Announcements")
                     }
                 }
@@ -189,7 +348,10 @@ fun AdminScreen(
                 } else {
                     itemsIndexed(uiState.recentAnnouncements) { index, announcement ->
                         StaggeredAnimatedItem(index = index + 2) {
-                            AnnouncementItem(announcement = announcement)
+                            AnnouncementItem(
+                                announcement = announcement,
+                                onClick = { onEditAnnouncement(announcement.id) }
+                            )
                         }
                     }
                 }
@@ -228,23 +390,23 @@ fun AdminScreen(
 private fun FabMenu(
     showMenu: Boolean,
     onToggle: () -> Unit,
-    onCreateAnnouncement: () -> Unit,
-    onCreateEvent: () -> Unit
+    onManageAnnouncements: () -> Unit,
+    onManageEvents: () -> Unit
 ) {
     Column(horizontalAlignment = Alignment.End) {
         if (showMenu) {
             FabMenuItem(
-                label = "Create Event",
+                label = "Manage Events",
                 icon = Icons.Default.Event,
                 color = HmifBlue,
-                onClick = onCreateEvent
+                onClick = onManageEvents
             )
             Spacer(modifier = Modifier.height(HmifTheme.spacing.sm))
             FabMenuItem(
-                label = "Create Announcement",
+                label = "Manage Announcements",
                 icon = Icons.AutoMirrored.Filled.Announcement,
                 color = HmifPurple,
-                onClick = onCreateAnnouncement
+                onClick = onManageAnnouncements
             )
             Spacer(modifier = Modifier.height(HmifTheme.spacing.sm))
         }
@@ -378,9 +540,13 @@ private fun EmptyCard(message: String) {
 // ════════════════════════════════════════════════════════════════
 
 @Composable
-private fun AnnouncementItem(announcement: AnnouncementEntity) {
+private fun AnnouncementItem(
+    announcement: AnnouncementEntity,
+    onClick: () -> Unit
+) {
     GlassmorphicCard(
         modifier = Modifier.fillMaxWidth(),
+        onClick = onClick,
         cornerRadius = HmifTheme.cornerRadius.md
     ) {
         Row(

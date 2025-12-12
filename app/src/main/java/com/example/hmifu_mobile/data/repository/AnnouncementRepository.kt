@@ -113,6 +113,27 @@ class AnnouncementRepository @Inject constructor(
     }
 
     /**
+     * Update an announcement.
+     */
+    suspend fun update(announcement: AnnouncementEntity): Result<Unit> {
+        return try {
+            val data = mapOf(
+                "title" to announcement.title,
+                "body" to announcement.body,
+                "category" to announcement.category,
+                "isPinned" to announcement.isPinned,
+                "attachmentUrl" to announcement.attachmentUrl,
+                "updatedAt" to System.currentTimeMillis()
+            )
+            collection.document(announcement.id).update(data).await()
+            announcementDao.upsert(announcement.copy(updatedAt = System.currentTimeMillis()))
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    /**
      * Delete an announcement (admin only).
      */
     suspend fun delete(id: String): Result<Unit> {

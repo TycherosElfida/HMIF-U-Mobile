@@ -17,10 +17,17 @@ data class UserEntity(
     val concentration: String = "",
     val techStack: String = "",
     val photoUrl: String? = null,
-    val role: String = "member",
+    val role: String = ROLE_MEMBER,
     val points: Int = 0,
     val membershipStatus: String = "active",
     val createdAt: Long = System.currentTimeMillis(),
     val updatedAt: Long = System.currentTimeMillis(),
     val syncedAt: Long = System.currentTimeMillis()
-)
+) {
+    companion object {
+        const val ROLE_ADMIN = "admin"
+        const val ROLE_MODERATOR = "moderator"
+        const val ROLE_STAFF = "staff"
+        const val ROLE_MEMBER = "member"
+    }
+}

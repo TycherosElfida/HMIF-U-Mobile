@@ -4,33 +4,25 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.hmifu_mobile.data.local.dao.EventRegistrationDao
 import com.example.hmifu_mobile.data.local.entity.EventEntity
-import com.google.firebase.auth.FirebaseAuth
+import com.example.hmifu_mobile.data.repository.AuthRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-/**
- * My Events screen UI state.
- */
 data class MyEventsUiState(
-    val isLoading: Boolean = true,
     val upcomingEvents: List<EventEntity> = emptyList(),
     val pastEvents: List<EventEntity> = emptyList(),
-    val selectedTab: Int = 0, // 0 = Upcoming, 1 = Past
-    val errorMessage: String? = null
+    val isLoading: Boolean = true
 )
 
-/**
- * ViewModel for My Events screen.
- */
 @HiltViewModel
 class MyEventsViewModel @Inject constructor(
     private val eventRegistrationDao: EventRegistrationDao,
-    private val auth: FirebaseAuth
+    private val authRepository: AuthRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(MyEventsUiState())
@@ -41,41 +33,28 @@ class MyEventsViewModel @Inject constructor(
     }
 
     private fun loadMyEvents() {
-        val userId = auth.currentUser?.uid ?: run {
-            _uiState.update { it.copy(isLoading = false, errorMessage = "Not logged in") }
-            return
-        }
-
-        val currentTime = System.currentTimeMillis()
-
-        // Load upcoming events
-        viewModelScope.launch {
-            eventRegistrationDao.getUpcomingRegisteredEvents(userId, currentTime)
-                .collect { events ->
-                    _uiState.update {
-                        it.copy(isLoading = false, upcomingEvents = events)
+        val user = authRepository.currentUser
+        if (user != null) {
+            viewModelScope.launch {
+                val currentTime = System.currentTimeMillis()
+                
+                // We could combine flows, but executing two separate collections is simpler for now
+                // Or better, launch two coroutines to updates state concurrently
+                
+                launch {
+                    eventRegistrationDao.getUpcomingRegisteredEvents(user.uid, currentTime).collectLatest { events ->
+                        _uiState.value = _uiState.value.copy(upcomingEvents = events, isLoading = false)
                     }
                 }
-        }
-
-        // Load past events
-        viewModelScope.launch {
-            eventRegistrationDao.getPastRegisteredEvents(userId, currentTime)
-                .collect { events ->
-                    _uiState.update {
-                        it.copy(pastEvents = events)
+                
+                launch {
+                    eventRegistrationDao.getPastRegisteredEvents(user.uid, currentTime).collectLatest { events ->
+                        _uiState.value = _uiState.value.copy(pastEvents = events) // Maintain loading if desired, but upcoming is prio
                     }
                 }
+            }
+        } else {
+             _uiState.value = _uiState.value.copy(isLoading = false)
         }
     }
-
-    fun selectTab(tabIndex: Int) {
-        _uiState.update { it.copy(selectedTab = tabIndex) }
-    }
-
-    fun clearError() {
-        _uiState.update { it.copy(errorMessage = null) }
-    }
-
-
 }

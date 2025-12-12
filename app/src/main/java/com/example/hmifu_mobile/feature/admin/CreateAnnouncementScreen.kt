@@ -71,7 +71,7 @@ fun CreateAnnouncementScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = "Create Announcement",
+                        text = if (uiState.id != null) "Edit Announcement" else "Create Announcement",
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold
                     )
@@ -115,6 +115,17 @@ fun CreateAnnouncementScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(200.dp),
+                enabled = !uiState.isLoading
+            )
+
+            // Attachment URL
+            OutlinedTextField(
+                value = uiState.attachmentUrl,
+                onValueChange = viewModel::updateAttachmentUrl,
+                label = { Text("Attachment URL (Optional)") },
+                placeholder = { Text("https://ik.imagekit.io/...") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
                 enabled = !uiState.isLoading
             )
 
@@ -170,12 +181,12 @@ fun CreateAnnouncementScreen(
 
             // Submit button
             LoadingButton(
-                onClick = viewModel::createAnnouncement,
+                onClick = viewModel::saveAnnouncement,
                 enabled = uiState.isValid && !uiState.isLoading,
                 isLoading = uiState.isLoading,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Create Announcement")
+                Text(if (uiState.id != null) "Save Changes" else "Create Announcement")
             }
         }
     }

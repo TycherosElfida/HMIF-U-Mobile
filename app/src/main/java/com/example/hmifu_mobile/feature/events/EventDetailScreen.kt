@@ -78,9 +78,12 @@ fun EventDetailScreen(
     viewModel: EventDetailViewModel = hiltViewModel(),
     onNavigateBack: () -> Unit,
     onAddToCalendar: (EventEntity) -> Unit = {},
-    onRegister: (EventEntity) -> Unit = {}
+    onRegister: (EventEntity) -> Unit = {},
+    onEditEvent: (String) -> Unit = {}
 ) {
     val event by viewModel.event.collectAsState()
+    val isEditable by viewModel.isEditable.collectAsState()
+    val isRegistered by viewModel.isRegistered.collectAsState()
 
     Scaffold(
         topBar = {
@@ -102,7 +105,10 @@ fun EventDetailScreen(
             EventDetailContent(
                 event = evt,
                 onAddToCalendar = { onAddToCalendar(evt) },
-                onRegister = { onRegister(evt) },
+                onRegister = { viewModel.toggleRegistration() },
+                onEdit = { onEditEvent(evt.id) },
+                isEditable = isEditable,
+                isRegistered = isRegistered,
                 modifier = Modifier.padding(padding)
             )
         } ?: run {
@@ -120,6 +126,9 @@ private fun EventDetailContent(
     event: EventEntity,
     onAddToCalendar: () -> Unit,
     onRegister: () -> Unit,
+    onEdit: () -> Unit,
+    isEditable: Boolean,
+    isRegistered: Boolean,
     modifier: Modifier = Modifier
 ) {
     val status = EventStatus.fromEvent(event)
@@ -168,7 +177,10 @@ private fun EventDetailContent(
                     status = status,
                     event = event,
                     onAddToCalendar = onAddToCalendar,
-                    onRegister = onRegister
+                    onRegister = onRegister,
+                    onEdit = onEdit,
+                    isEditable = isEditable,
+                    isRegistered = isRegistered
                 )
             }
         }
@@ -437,7 +449,10 @@ private fun ActionButtons(
     status: EventStatus,
     event: EventEntity,
     onAddToCalendar: () -> Unit,
-    onRegister: () -> Unit
+    onRegister: () -> Unit,
+    onEdit: () -> Unit,
+    isEditable: Boolean,
+    isRegistered: Boolean
 ) {
     if (status == EventStatus.ENDED) return
 
@@ -450,10 +465,32 @@ private fun ActionButtons(
         if (status == EventStatus.UPCOMING) {
             val canRegister = event.maxParticipants?.let { event.currentParticipants < it } ?: true
 
-            GradientButton(
-                text = if (canRegister) "Register Now" else "Event Full",
-                onClick = onRegister,
-                enabled = canRegister
+            if (isRegistered) {
+                androidx.compose.material3.Button(
+                    onClick = onRegister,
+                    modifier = Modifier.fillMaxWidth().height(HmifTheme.sizes.buttonHeight),
+                    shape = RoundedCornerShape(HmifTheme.cornerRadius.md),
+                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = Error)
+                ) {
+                    Text(
+                        text = "Cancel Registration",
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+            } else {
+                GradientButton(
+                    text = if (canRegister) "Register Now" else "Event Full",
+                    onClick = onRegister,
+                    enabled = canRegister
+                )
+            }
+        }
+
+        if (isEditable) {
+            SecondaryButton(
+                text = "✏️ Edit Event",
+                onClick = onEdit
             )
         }
 

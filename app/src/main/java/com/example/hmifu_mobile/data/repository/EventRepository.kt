@@ -130,4 +130,31 @@ class EventRepository @Inject constructor(
             Result.failure(e)
         }
     }
+
+    /**
+     * Update an event.
+     */
+    suspend fun updateEvent(event: EventEntity): Result<Unit> {
+        return try {
+            val data = mapOf(
+                "title" to event.title,
+                "description" to event.description,
+                "category" to event.category,
+                "location" to event.location,
+                "isOnline" to event.isOnline,
+                "meetingUrl" to event.meetingUrl,
+                "startTime" to event.startTime,
+                "endTime" to event.endTime,
+                "registrationDeadline" to event.registrationDeadline,
+                "maxParticipants" to event.maxParticipants,
+                "imageUrl" to event.imageUrl,
+                "updatedAt" to System.currentTimeMillis()
+            )
+            collection.document(event.id).update(data).await()
+            eventDao.upsert(event.copy(updatedAt = System.currentTimeMillis()))
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 }

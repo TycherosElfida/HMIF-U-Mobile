@@ -23,6 +23,7 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.rounded.CardMembership
 import androidx.compose.material.icons.rounded.ChevronRight
+import androidx.compose.material.icons.rounded.Event
 import androidx.compose.material.icons.rounded.Poll
 import androidx.compose.material.icons.rounded.QrCode
 import androidx.compose.material.icons.rounded.School
@@ -80,6 +81,7 @@ fun ProfileScreen(
     onEditProfile: () -> Unit = {},
     onSettings: () -> Unit = {},
     onMemberCard: () -> Unit = {},
+    onMyEvents: () -> Unit = {},
     onCertificates: () -> Unit = {},
     onPolls: () -> Unit = {},
     onResources: () -> Unit = {},
@@ -144,6 +146,7 @@ fun ProfileScreen(
                     profile = uiState.profile!!,
                     onEditProfile = onEditProfile,
                     onMemberCard = onMemberCard,
+                    onMyEvents = onMyEvents,
                     onCertificates = onCertificates,
                     onPolls = onPolls,
                     onResources = onResources,
@@ -168,6 +171,7 @@ private fun ProfileContent(
     profile: UserProfile,
     onEditProfile: () -> Unit,
     onMemberCard: () -> Unit,
+    onMyEvents: () -> Unit,
     onCertificates: () -> Unit,
     onPolls: () -> Unit,
     onResources: () -> Unit,
@@ -191,6 +195,7 @@ private fun ProfileContent(
             StaggeredAnimatedItem(index = 1) {
                 QuickActionsSection(
                     onMemberCard = onMemberCard,
+                    onMyEvents = onMyEvents,
                     onCertificates = onCertificates,
                     onPolls = onPolls,
                     onResources = onResources
@@ -337,6 +342,7 @@ private fun RoleBadge(role: String) {
 @Composable
 private fun QuickActionsSection(
     onMemberCard: () -> Unit,
+    onMyEvents: () -> Unit,
     onCertificates: () -> Unit,
     onPolls: () -> Unit,
     onResources: () -> Unit
@@ -352,6 +358,14 @@ private fun QuickActionsSection(
                 subtitle = "Show your digital ID",
                 color = HmifBlue,
                 onClick = onMemberCard
+            )
+
+            ActionMenuItem(
+                icon = Icons.Rounded.Event,
+                title = "My Events",
+                subtitle = "Upcoming & Past Events",
+                color = HmifPurple,
+                onClick = onMyEvents
             )
 
             ActionMenuItem(

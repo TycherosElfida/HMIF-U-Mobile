@@ -163,6 +163,61 @@ class UserRepository @Inject constructor(
         }
     }
 
+    /**
+     * Search users by name (prefix match).
+     */
+    suspend fun searchUsers(query: String): Result<List<UserProfile>> {
+        return try {
+            val q = if (query.isBlank()) {
+                usersCollection.limit(20)
+            } else {
+                usersCollection
+                    .orderBy("name")
+                    .startAt(query)
+                    .endAt(query + "\uf8ff")
+                    .limit(20)
+            }
+
+            val snapshot = q.get().await()
+            val users = snapshot.documents.mapNotNull { doc ->
+                if (!doc.exists()) return@mapNotNull null
+                UserProfile(
+                    uid = doc.id,
+                    email = doc.getString("email") ?: "",
+                    name = doc.getString("name") ?: "",
+                    nim = doc.getString("nim") ?: "",
+                    angkatan = doc.getString("angkatan") ?: "",
+                    concentration = doc.getString("concentration") ?: "",
+                    techStack = doc.getString("techStack") ?: "",
+                    photoUrl = doc.getString("photoUrl"),
+                    role = doc.getString("role") ?: "member"
+                )
+            }
+            Result.success(users)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    /**
+     * Update a user's role.
+     */
+    suspend fun updateUserRole(uid: String, role: String): Result<Unit> {
+        return try {
+            usersCollection.document(uid).update("role", role).await()
+            
+            // Also update local cache if it exists in DB
+            val localUser = userDao.getUser(uid)
+            if (localUser != null) {
+                userDao.upsert(localUser.copy(role = role))
+            }
+            
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
     private fun UserEntity.toProfile(): UserProfile = UserProfile(
         uid = uid,
         email = email,
