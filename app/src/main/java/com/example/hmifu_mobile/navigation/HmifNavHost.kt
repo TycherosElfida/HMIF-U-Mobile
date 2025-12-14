@@ -22,6 +22,8 @@ import androidx.navigation.navArgument
 import com.example.hmifu_mobile.feature.auth.AuthViewModel
 import com.example.hmifu_mobile.feature.auth.LoginScreen
 import com.example.hmifu_mobile.feature.auth.ProfileSetupScreen
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.ui.Alignment
 import com.example.hmifu_mobile.feature.auth.RegisterScreen
 
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -391,24 +393,32 @@ private fun MainScaffold(
         items
     }
 
+    // Use Box to overlay Floating Bottom Navigation
     Scaffold(
-        bottomBar = {
-            NavigationBar {
-                navItems.forEach { screen ->
-                    NavigationBarItem(
-                        icon = {
-                            screen.icon?.let { Icon(it, contentDescription = screen.title) }
-                        },
-                        label = { Text(screen.title) },
-                        selected = currentRoute == screen.route,
-                        onClick = { onNavigate(screen.route) }
-                    )
-                }
-            }
-        }
+        // We don't use the standard bottomBar parameter to avoid the reserved space
+        // confusing the floating effect. We want content to be able to go behind it if needed,
+        // or just have it float over.
     ) { innerPadding ->
-        Box(modifier = Modifier.padding(innerPadding)) {
-            content()
+        Box(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            // Main Content
+            // Add extra padding at bottom so content isn't hidden behind floating nav
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+            ) {
+                content()
+            }
+
+            // Premium Floating Navbar
+            com.example.hmifu_mobile.ui.components.FloatingBottomNavigation(
+                screens = navItems,
+                currentRoute = currentRoute,
+                onNavigate = onNavigate,
+                modifier = Modifier.align(Alignment.BottomCenter)
+            )
         }
     }
 }
