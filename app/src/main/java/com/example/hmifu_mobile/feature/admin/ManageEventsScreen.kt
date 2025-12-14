@@ -75,28 +75,45 @@ fun ManageEventsScreen(
             }
         }
     ) { padding ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding),
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            itemsIndexed(uiState.events) { index, event ->
-                StaggeredAnimatedItem(index = index) {
-                    ManageEventItem(
-                        event = event,
-                        onEdit = { onEditEvent(event.id) },
-                        onDelete = { showDeleteDialog = event.id }
-                    )
-                }
+        ManageEventsContent(
+            events = uiState.events,
+            onEditEvent = onEditEvent,
+            onDeleteEvent = { showDeleteDialog = it },
+            contentPadding = padding
+        )
+    }
+}
+
+@Composable
+fun ManageEventsContent(
+    events: List<EventEntity>,
+    onEditEvent: (String) -> Unit,
+    onDeleteEvent: (String) -> Unit,
+    contentPadding: PaddingValues = PaddingValues(0.dp)
+) {
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(contentPadding),
+        contentPadding = PaddingValues(16.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        itemsIndexed(events) { index, event ->
+            StaggeredAnimatedItem(index = index) {
+                ManageEventItem(
+                    event = event,
+                    onEdit = { onEditEvent(event.id) },
+                    onDelete = { onDeleteEvent(event.id) }
+                )
             }
         }
     }
 }
 
+// No changes
 @Composable
 fun ManageEventItem(
+// ...
     event: EventEntity,
     onEdit: () -> Unit,
     onDelete: () -> Unit

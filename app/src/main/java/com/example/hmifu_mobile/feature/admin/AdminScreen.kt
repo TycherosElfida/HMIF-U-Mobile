@@ -27,6 +27,7 @@ import androidx.compose.material.icons.rounded.AdminPanelSettings
 import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material.icons.rounded.AccountBalanceWallet
 import androidx.compose.material.icons.rounded.School
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -35,17 +36,21 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TabRow
+import androidx.compose.material3.Tab
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -72,11 +77,7 @@ import com.example.hmifu_mobile.ui.theme.Success
 
 /**
  * Admin Screen - Premium 2025 Design
- *
- * Features:
- * - Glassmorphic stat cards
- * - FAB menu for creation
- * - Announcement and event lists
+ * Features: 3 Tabs (Dashboard, Events, Announcements)
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -85,6 +86,7 @@ fun AdminScreen(
     onManageAnnouncements: () -> Unit = {},
     onEditAnnouncement: (String) -> Unit = {},
     onManageEvents: () -> Unit = {},
+    onEditEvent: (String) -> Unit = {},
     onViewRegistrants: (String) -> Unit = {},
     onManageResources: () -> Unit = {},
     onFinance: () -> Unit = {},
@@ -95,13 +97,68 @@ fun AdminScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
-    var showFabMenu by remember { mutableStateOf(false) }
+    
+    // Tab State
+    var selectedTabIndex by remember { mutableIntStateOf(0) }
+    val tabs = listOf("Dashboard", "Events", "Announcements")
+
+    // Event & Announcement ViewModels
+    val eventViewModel: ManageEventsViewModel = hiltViewModel()
+    val eventState by eventViewModel.uiState.collectAsState()
+    
+    val announcementViewModel: ManageAnnouncementsViewModel = hiltViewModel()
+    val announcementState by announcementViewModel.uiState.collectAsState()
+
+    // Delete Confirmation State
+    var showEventDeleteDialog by remember { mutableStateOf<String?>(null) }
+    var showAnnouncementDeleteDialog by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(uiState.errorMessage) {
         uiState.errorMessage?.let {
             snackbarHostState.showSnackbar(it)
             viewModel.clearError()
         }
+    }
+    
+    // Delete Dialogs
+    if (showEventDeleteDialog != null) {
+        AlertDialog(
+            onDismissRequest = { showEventDeleteDialog = null },
+            title = { Text("Delete Event") },
+            text = { Text("Are you sure? This cannot be undone.") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        eventViewModel.deleteEvent(showEventDeleteDialog!!)
+                        showEventDeleteDialog = null
+                    },
+                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
+                ) { Text("Delete") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showEventDeleteDialog = null }) { Text("Cancel") }
+            }
+        )
+    }
+
+    if (showAnnouncementDeleteDialog != null) {
+        AlertDialog(
+            onDismissRequest = { showAnnouncementDeleteDialog = null },
+            title = { Text("Delete Announcement") },
+            text = { Text("Are you sure? This cannot be undone.") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        announcementViewModel.deleteAnnouncement(showAnnouncementDeleteDialog!!)
+                        showAnnouncementDeleteDialog = null
+                    },
+                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
+                ) { Text("Delete") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showAnnouncementDeleteDialog = null }) { Text("Cancel") }
+            }
+        )
     }
 
     if (!uiState.isLoading && !uiState.isAdmin) {
@@ -112,457 +169,285 @@ fun AdminScreen(
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
-            TopAppBar(
-                title = {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(HmifTheme.spacing.sm)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Rounded.AdminPanelSettings,
-                            contentDescription = null,
-                            tint = HmifOrange
-                        )
-                        Text(
-                            text = "Admin Panel",
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-                },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.Transparent
+            Column {
+                TopAppBar(
+                    title = {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(HmifTheme.spacing.sm)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Rounded.AdminPanelSettings,
+                                contentDescription = null,
+                                tint = HmifOrange
+                            )
+                            Text(
+                                text = "Admin Panel",
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    },
+                    navigationIcon = {
+                        IconButton(onClick = onNavigateBack) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = Color.Transparent
+                    )
                 )
-            )
+                
+                TabRow(
+                    selectedTabIndex = selectedTabIndex,
+                    containerColor = Color.Transparent,
+                    contentColor = MaterialTheme.colorScheme.primary,
+                    divider = {}
+                ) {
+                    tabs.forEachIndexed { index, title ->
+                        Tab(
+                            selected = selectedTabIndex == index,
+                            onClick = { selectedTabIndex = index },
+                            text = { 
+                                Text(
+                                    text = title, 
+                                    fontWeight = if (selectedTabIndex == index) FontWeight.Bold else FontWeight.Normal
+                                ) 
+                            }
+                        )
+                    }
+                }
+            }
         },
         floatingActionButton = {
-            FabMenu(
-                showMenu = showFabMenu,
-                onToggle = { showFabMenu = !showFabMenu },
-                onManageAnnouncements = {
-                    showFabMenu = false
-                    onManageAnnouncements()
-                },
-                onManageEvents = {
-                    showFabMenu = false
-                    onManageEvents()
-                },
-                onManageResources = {
-                    showFabMenu = false
-                    onManageResources()
+            when (selectedTabIndex) {
+                1 -> { // Events
+                    FloatingActionButton(
+                        onClick = { onManageEvents() },
+                        containerColor = HmifBlue
+                    ) {
+                        Icon(Icons.Default.Add, "Create Event")
+                    }
                 }
-            )
+                2 -> { // Announcements
+                    FloatingActionButton(
+                        onClick = { onManageAnnouncements() },
+                        containerColor = HmifPurple
+                    ) {
+                        Icon(Icons.Default.Add, "Create Announcement")
+                    }
+                }
+            }
         },
         containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
-        if (uiState.isLoading) {
-            LoadingState(modifier = Modifier.padding(padding))
-        } else {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding),
-                contentPadding = PaddingValues(HmifTheme.spacing.lg),
-                verticalArrangement = Arrangement.spacedBy(HmifTheme.spacing.lg)
-            ) {
-                // Stats row
-                item {
-                    StaggeredAnimatedItem(index = 0) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(HmifTheme.spacing.md)
-                        ) {
-                            StatCard(
-                                title = "Announcements",
-                                count = uiState.totalAnnouncements,
-                                icon = Icons.AutoMirrored.Filled.Announcement,
-                                color = HmifBlue,
-                                modifier = Modifier.weight(1f)
-                            )
-                            StatCard(
-                                title = "Events",
-                                count = uiState.totalEvents,
-                                icon = Icons.Default.Event,
-                                color = HmifOrange,
-                                modifier = Modifier.weight(1f)
-                            )
-                        }
-                    }
-                    }
-
-                // Finance Section (Treasurer, President, Vice President)
-                if (uiState.isTreasurer || uiState.isPresident || uiState.isVicePresident) {
-                    item {
-                        StaggeredAnimatedItem(index = 1) {
-                            GlassmorphicCard(
-                                modifier = Modifier.fillMaxWidth(),
-                                onClick = onFinance,
-                                cornerRadius = HmifTheme.cornerRadius.md
-                            ) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(HmifTheme.spacing.md)
-                                ) {
-                                    Box(
-                                        modifier = Modifier
-                                            .size(48.dp)
-                                            .clip(RoundedCornerShape(HmifTheme.cornerRadius.md))
-                                            .background(Success.copy(alpha = 0.15f)),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Rounded.AccountBalanceWallet,
-                                            contentDescription = null,
-                                            tint = Success,
-                                            modifier = Modifier.size(26.dp)
-                                        )
-                                    }
-                                    Column(modifier = Modifier.weight(1f)) {
-                                        Text(
-                                            text = "Finance Dashboard",
-                                            style = MaterialTheme.typography.titleMedium,
-                                            fontWeight = FontWeight.Bold
-                                        )
-                                        Text(
-                                            text = "Manage Income & Expenses",
-                                            style = MaterialTheme.typography.bodySmall,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
-                                    }
-                                    Icon(
-                                        Icons.AutoMirrored.Filled.ArrowBack, // Changed to ArrowForward in full impl or just reused icon
-                                        contentDescription = "Go",
-                                        modifier = Modifier.rotate(180f)
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-
-                // Secretariat Section (Secretary, President, Vice President)
-                if (uiState.isSecretary || uiState.isPresident || uiState.isVicePresident) {
-                    item {
-                        StaggeredAnimatedItem(index = 2) {
-                            GlassmorphicCard(
-                                modifier = Modifier.fillMaxWidth(),
-                                onClick = onSecretariat,
-                                cornerRadius = HmifTheme.cornerRadius.md
-                            ) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(HmifTheme.spacing.md)
-                                ) {
-                                    Box(
-                                        modifier = Modifier
-                                            .size(48.dp)
-                                            .clip(RoundedCornerShape(HmifTheme.cornerRadius.md))
-                                            .background(HmifBlue.copy(alpha = 0.15f)),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Default.Description, // Requires import
-                                            contentDescription = null,
-                                            tint = HmifBlue,
-                                            modifier = Modifier.size(26.dp)
-                                        )
-                                    }
-                                    Column(modifier = Modifier.weight(1f)) {
-                                        Text(
-                                            text = "Secretariat Dashboard",
-                                            style = MaterialTheme.typography.titleMedium,
-                                            fontWeight = FontWeight.Bold
-                                        )
-                                        Text(
-                                            text = "Proposals & LPJ Management",
-                                            style = MaterialTheme.typography.bodySmall,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
-                                    }
-                                    Icon(
-                                        Icons.AutoMirrored.Filled.ArrowBack, // Changed to ArrowForward in full impl or just reused icon
-                                        contentDescription = "Go",
-                                        modifier = Modifier.rotate(180f)
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-
-                // Resources Management (Admin, Education Dept - assuming Admin for now)
-                if (uiState.isAdmin) {
-                    item {
-                        StaggeredAnimatedItem(index = 3) {
-                            GlassmorphicCard(
-                                modifier = Modifier.fillMaxWidth(),
-                                onClick = onManageResources,
-                                cornerRadius = HmifTheme.cornerRadius.md
-                            ) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(HmifTheme.spacing.md)
-                                ) {
-                                    Box(
-                                        modifier = Modifier
-                                            .size(48.dp)
-                                            .clip(RoundedCornerShape(HmifTheme.cornerRadius.md))
-                                            .background(HmifOrange.copy(alpha = 0.15f)),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Rounded.School,
-                                            contentDescription = null,
-                                            tint = HmifOrange,
-                                            modifier = Modifier.size(26.dp)
-                                        )
-                                    }
-                                    Column(modifier = Modifier.weight(1f)) {
-                                        Text(
-                                            text = "Manage Resources",
-                                            style = MaterialTheme.typography.titleMedium,
-                                            fontWeight = FontWeight.Bold
-                                        )
-                                        Text(
-                                            text = "Bank Soal & Academic Files",
-                                            style = MaterialTheme.typography.bodySmall,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
-                                    }
-                                    Icon(
-                                        Icons.AutoMirrored.Filled.ArrowBack,
-                                        contentDescription = "Go",
-                                        modifier = Modifier.rotate(180f)
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-
-                // Scan Ticket Action (Admin, Staff, Moderator, etc) - basically anyone with admin access
-                item {
-                    StaggeredAnimatedItem(index = 4) {
-                        GlassmorphicCard(
-                            modifier = Modifier.fillMaxWidth(),
-                            onClick = onScanTicket,
-                            cornerRadius = HmifTheme.cornerRadius.md
-                        ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(HmifTheme.spacing.md)
-                            ) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(48.dp)
-                                        .clip(RoundedCornerShape(HmifTheme.cornerRadius.md))
-                                        .background(Color.Gray.copy(alpha = 0.15f)),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.QrCodeScanner, // Requires import
-                                        contentDescription = null,
-                                        tint = Color.Gray,
-                                        modifier = Modifier.size(26.dp)
-                                    )
-                                }
-                                Column(modifier = Modifier.weight(1f)) {
-                                    Text(
-                                        text = "Scan Event Ticket",
-                                        style = MaterialTheme.typography.titleMedium,
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                    Text(
-                                        text = "Check-in participants",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                }
-                                Icon(
-                                    Icons.AutoMirrored.Filled.ArrowBack,
-                                    contentDescription = "Go",
-                                    modifier = Modifier.rotate(180f)
-                                )
-                            }
-                        }
-                    }
-                }
-
-                // User Management (President & Vice President)
-                if (uiState.isPresident || uiState.isVicePresident) {
-                    item {
-                        StaggeredAnimatedItem(index = 3) {
-                            GlassmorphicCard(
-                                modifier = Modifier.fillMaxWidth(),
-                                onClick = onManageUsers,
-                                cornerRadius = HmifTheme.cornerRadius.md
-                            ) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(HmifTheme.spacing.md)
-                                ) {
-                                    Box(
-                                        modifier = Modifier
-                                            .size(48.dp)
-                                            .clip(RoundedCornerShape(HmifTheme.cornerRadius.md))
-                                            .background(HmifPurple.copy(alpha = 0.15f)),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Default.SupervisorAccount,
-                                            contentDescription = null,
-                                            tint = HmifPurple,
-                                            modifier = Modifier.size(26.dp)
-                                        )
-                                    }
-                                    Column(modifier = Modifier.weight(1f)) {
-                                        Text(
-                                            text = "Manage Users",
-                                            style = MaterialTheme.typography.titleMedium,
-                                            fontWeight = FontWeight.Bold
-                                        )
-                                        Text(
-                                            text = "Assign Roles (President, Treasurer, etc.)",
-                                            style = MaterialTheme.typography.bodySmall,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
-                                    }
-                                    Icon(
-                                        Icons.AutoMirrored.Filled.ArrowBack, // Changed to ArrowForward in full impl or just reused icon
-                                        contentDescription = "Go",
-                                        modifier = Modifier.rotate(180f)
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-
-                // Recent announcements
-                item {
-                    StaggeredAnimatedItem(index = 3) {
-                        SectionHeader(title = "📢 Recent Announcements")
-                    }
-                }
-
-                if (uiState.recentAnnouncements.isEmpty()) {
-                    item { EmptyCard(message = "No announcements yet") }
-                } else {
-                    itemsIndexed(uiState.recentAnnouncements) { index, announcement ->
-                        StaggeredAnimatedItem(index = index + 2) {
-                            AnnouncementItem(
-                                announcement = announcement,
-                                onClick = { onEditAnnouncement(announcement.id) }
-                            )
-                        }
-                    }
-                }
-
-                // Recent events
-                item {
-                    StaggeredAnimatedItem(index = uiState.recentAnnouncements.size + 2) {
-                        SectionHeader(title = "📅 Recent Events")
-                    }
-                }
-
-                if (uiState.recentEvents.isEmpty()) {
-                    item { EmptyCard(message = "No events yet") }
-                } else {
-                    itemsIndexed(uiState.recentEvents) { index, event ->
-                        StaggeredAnimatedItem(index = index + uiState.recentAnnouncements.size + 3) {
-                            EventItem(
-                                event = event,
-                                onViewRegistrants = { onViewRegistrants(event.id) }
-                            )
-                        }
-                    }
-                }
-
-                item { Spacer(modifier = Modifier.height(80.dp)) }
+        Box(modifier = Modifier.padding(padding)) {
+            when (selectedTabIndex) {
+                0 -> DashboardContent(
+                    uiState = uiState,
+                    onFinance = onFinance,
+                    onSecretariat = onSecretariat,
+                    onManageResources = onManageResources,
+                    onScanTicket = onScanTicket,
+                    onManageUsers = onManageUsers
+                )
+                1 -> ManageEventsContent(
+                    events = eventState.events,
+                    onEditEvent = onEditEvent,
+                    onDeleteEvent = { showEventDeleteDialog = it }
+                )
+                2 -> ManageAnnouncementsContent(
+                    announcements = announcementState.announcements,
+                    onEditAnnouncement = onEditAnnouncement,
+                    onDeleteAnnouncement = { showAnnouncementDeleteDialog = it }
+                )
             }
         }
     }
 }
 
-// ════════════════════════════════════════════════════════════════
-// FAB MENU
-// ════════════════════════════════════════════════════════════════
-
 @Composable
-private fun FabMenu(
-    showMenu: Boolean,
-    onToggle: () -> Unit,
-    onManageAnnouncements: () -> Unit,
-    onManageEvents: () -> Unit,
-    onManageResources: () -> Unit
+private fun DashboardContent(
+    uiState: AdminUiState,
+    onFinance: () -> Unit,
+    onSecretariat: () -> Unit,
+    onManageResources: () -> Unit,
+    onScanTicket: () -> Unit,
+    onManageUsers: () -> Unit
 ) {
-    Column(horizontalAlignment = Alignment.End) {
-        if (showMenu) {
-            FabMenuItem(
-                label = "Manage Resources",
-                icon = Icons.Rounded.School,
-                color = HmifOrange,
-                onClick = onManageResources
-            )
-            Spacer(modifier = Modifier.height(HmifTheme.spacing.sm))
-            FabMenuItem(
-                label = "Manage Events",
-                icon = Icons.Default.Event,
-                color = HmifBlue,
-                onClick = onManageEvents
-            )
-            Spacer(modifier = Modifier.height(HmifTheme.spacing.sm))
-            FabMenuItem(
-                label = "Manage Announcements",
-                icon = Icons.AutoMirrored.Filled.Announcement,
-                color = HmifPurple,
-                onClick = onManageAnnouncements
-            )
-            Spacer(modifier = Modifier.height(HmifTheme.spacing.sm))
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(HmifTheme.spacing.lg),
+        verticalArrangement = Arrangement.spacedBy(HmifTheme.spacing.lg)
+    ) {
+        // Stats row
+        item {
+            StaggeredAnimatedItem(index = 0) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(HmifTheme.spacing.md)
+                ) {
+                    StatCard(
+                        title = "Announcements",
+                        count = uiState.totalAnnouncements,
+                        icon = Icons.AutoMirrored.Filled.Announcement,
+                        color = HmifBlue,
+                        modifier = Modifier.weight(1f)
+                    )
+                    StatCard(
+                        title = "Events",
+                        count = uiState.totalEvents,
+                        icon = Icons.Default.Event,
+                        color = HmifOrange,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+            }
         }
 
-        FloatingActionButton(
-            onClick = onToggle,
-            containerColor = HmifOrange
-        ) {
-            Icon(
-                Icons.Default.Add,
-                contentDescription = if (showMenu) "Close" else "Create",
-                tint = Color.White
-            )
+        // Finance Section
+        if (uiState.isTreasurer || uiState.isPresident || uiState.isVicePresident) {
+            item {
+                StaggeredAnimatedItem(index = 1) {
+                    GlassmorphicCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        onClick = onFinance,
+                        cornerRadius = HmifTheme.cornerRadius.md
+                    ) {
+                        DashboardCardContent(
+                            title = "Finance Dashboard",
+                            subtitle = "Manage Income & Expenses",
+                            icon = Icons.Rounded.AccountBalanceWallet,
+                            color = Success
+                        )
+                    }
+                }
+            }
         }
+
+        // Secretariat Section
+        if (uiState.isSecretary || uiState.isPresident || uiState.isVicePresident) {
+            item {
+                StaggeredAnimatedItem(index = 2) {
+                    GlassmorphicCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        onClick = onSecretariat,
+                        cornerRadius = HmifTheme.cornerRadius.md
+                    ) {
+                        DashboardCardContent(
+                            title = "Secretariat Dashboard",
+                            subtitle = "Proposals & LPJ Management",
+                            icon = Icons.Default.Description,
+                            color = HmifBlue
+                        )
+                    }
+                }
+            }
+        }
+
+        // Resources Management
+        if (uiState.isAdmin) {
+            item {
+                StaggeredAnimatedItem(index = 3) {
+                    GlassmorphicCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        onClick = onManageResources,
+                        cornerRadius = HmifTheme.cornerRadius.md
+                    ) {
+                        DashboardCardContent(
+                            title = "Manage Resources",
+                            subtitle = "Bank Soal & Academic Files",
+                            icon = Icons.Rounded.School,
+                            color = HmifOrange
+                        )
+                    }
+                }
+            }
+        }
+
+        // Scan Ticket Action
+        item {
+            StaggeredAnimatedItem(index = 4) {
+                GlassmorphicCard(
+                    modifier = Modifier.fillMaxWidth(),
+                    onClick = onScanTicket,
+                    cornerRadius = HmifTheme.cornerRadius.md
+                ) {
+                    DashboardCardContent(
+                        title = "Scan Event Ticket",
+                        subtitle = "Check-in participants",
+                        icon = Icons.Default.QrCodeScanner,
+                        color = Color.Gray
+                    )
+                }
+            }
+        }
+
+        // User Management
+        if (uiState.isPresident || uiState.isVicePresident) {
+            item {
+                StaggeredAnimatedItem(index = 5) {
+                    GlassmorphicCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        onClick = onManageUsers,
+                        cornerRadius = HmifTheme.cornerRadius.md
+                    ) {
+                        DashboardCardContent(
+                            title = "Manage Users",
+                            subtitle = "Assign Roles",
+                            icon = Icons.Default.SupervisorAccount,
+                            color = HmifPurple
+                        )
+                    }
+                }
+            }
+        }
+        
+        item { Spacer(modifier = Modifier.height(80.dp)) }
     }
 }
 
 @Composable
-private fun FabMenuItem(
-    label: String,
+private fun DashboardCardContent(
+    title: String,
+    subtitle: String,
     icon: ImageVector,
-    color: Color,
-    onClick: () -> Unit
+    color: Color
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(HmifTheme.spacing.sm)
+        horizontalArrangement = Arrangement.spacedBy(HmifTheme.spacing.md)
     ) {
-        Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
-            Text(
-                text = label,
-                modifier = Modifier.padding(HmifTheme.spacing.sm),
-                style = MaterialTheme.typography.bodySmall
+        Box(
+            modifier = Modifier
+                .size(48.dp)
+                .clip(RoundedCornerShape(HmifTheme.cornerRadius.md))
+                .background(color.copy(alpha = 0.15f)),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = color,
+                modifier = Modifier.size(26.dp)
             )
         }
-        FloatingActionButton(
-            onClick = onClick,
-            containerColor = color.copy(alpha = 0.15f),
-            contentColor = color
-        ) {
-            Icon(icon, contentDescription = label)
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                text = subtitle,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
+        Icon(
+            Icons.AutoMirrored.Filled.ArrowBack,
+            contentDescription = "Go",
+            modifier = Modifier.rotate(180f)
+        )
     }
 }
 
@@ -609,142 +494,6 @@ private fun StatCard(
                 text = title,
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-    }
-}
-
-// ════════════════════════════════════════════════════════════════
-// SECTION HEADER
-// ════════════════════════════════════════════════════════════════
-
-@Composable
-private fun SectionHeader(title: String) {
-    Text(
-        text = title,
-        style = MaterialTheme.typography.titleMedium,
-        fontWeight = FontWeight.SemiBold,
-        modifier = Modifier.padding(vertical = HmifTheme.spacing.sm)
-    )
-}
-
-@Composable
-private fun EmptyCard(message: String) {
-    GlassmorphicCard(
-        modifier = Modifier.fillMaxWidth(),
-        cornerRadius = HmifTheme.cornerRadius.md
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(HmifTheme.spacing.xl),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = message,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-    }
-}
-
-// ════════════════════════════════════════════════════════════════
-// LIST ITEMS
-// ════════════════════════════════════════════════════════════════
-
-@Composable
-private fun AnnouncementItem(
-    announcement: AnnouncementEntity,
-    onClick: () -> Unit
-) {
-    GlassmorphicCard(
-        modifier = Modifier.fillMaxWidth(),
-        onClick = onClick,
-        cornerRadius = HmifTheme.cornerRadius.md
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(HmifTheme.spacing.md)
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(RoundedCornerShape(HmifTheme.cornerRadius.sm))
-                    .background(HmifBlue.copy(alpha = 0.15f)),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    Icons.AutoMirrored.Filled.Announcement,
-                    contentDescription = null,
-                    tint = HmifBlue,
-                    modifier = Modifier.size(22.dp)
-                )
-            }
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = announcement.title,
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Medium,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                Text(
-                    text = announcement.category,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun EventItem(
-    event: EventEntity,
-    onViewRegistrants: () -> Unit
-) {
-    GlassmorphicCard(
-        modifier = Modifier.fillMaxWidth(),
-        onClick = onViewRegistrants,
-        cornerRadius = HmifTheme.cornerRadius.md
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(HmifTheme.spacing.md)
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(RoundedCornerShape(HmifTheme.cornerRadius.sm))
-                    .background(HmifOrange.copy(alpha = 0.15f)),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    Icons.Default.Event,
-                    contentDescription = null,
-                    tint = HmifOrange,
-                    modifier = Modifier.size(22.dp)
-                )
-            }
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = event.title,
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Medium,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                Text(
-                    text = "${event.currentParticipants}/${event.maxParticipants ?: "∞"} registered",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-            Icon(
-                Icons.Default.People,
-                contentDescription = "View registrants",
-                tint = GradientEnd
             )
         }
     }

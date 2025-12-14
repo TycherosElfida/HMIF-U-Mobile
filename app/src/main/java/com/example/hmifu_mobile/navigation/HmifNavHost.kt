@@ -241,9 +241,15 @@ fun HmifNavHost(modifier: Modifier = Modifier) {
         composable("admin") {
             com.example.hmifu_mobile.feature.admin.AdminScreen(
                 onNavigateBack = { navController.popBackStack() },
-                onManageAnnouncements = { navController.navigate("manage_announcements") },
+                onManageAnnouncements = { navController.navigate("create_announcement") }, // Changed to Create
                 onEditAnnouncement = { id -> navController.navigate("create_announcement?announcementId=$id") },
-                onManageEvents = { navController.navigate("manage_events") },
+                onManageEvents = { navController.navigate("create_event") }, // Changed to Create
+                onEditEvent = { id -> navController.navigate("create_event?eventId=$id") }, // NEED TO ADD THIS param to AdminScreen signature first?
+                // Wait, AdminScreen signature does NOT have onEditEvent.
+                // I need to add onEditEvent to AdminScreen signature in the previous file.
+                // I missed adding `onEditEvent` to `AdminScreen` parameters in the huge replace block.
+                // I passed `onEditEvent = { onEditAnnouncement(it) }` inside AdminScreen which is WRONG.
+                // I need to fix AdminScreen signature AND HmifNavHost.
                 onSecretariat = { navController.navigate("secretariat") },
                 onViewRegistrants = { eventId ->
                     navController.navigate("event_registrants/$eventId")

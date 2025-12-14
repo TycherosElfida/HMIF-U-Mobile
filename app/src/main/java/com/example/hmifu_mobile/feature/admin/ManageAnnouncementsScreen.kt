@@ -75,21 +75,36 @@ fun ManageAnnouncementsScreen(
             }
         }
     ) { padding ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding),
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            itemsIndexed(uiState.announcements) { index, announcement ->
-                StaggeredAnimatedItem(index = index) {
-                    ManageAnnouncementItem(
-                        announcement = announcement,
-                        onEdit = { onEditAnnouncement(announcement.id) },
-                        onDelete = { showDeleteDialog = announcement.id }
-                    )
-                }
+        ManageAnnouncementsContent(
+            announcements = uiState.announcements,
+            onEditAnnouncement = onEditAnnouncement,
+            onDeleteAnnouncement = { showDeleteDialog = it },
+            contentPadding = padding
+        )
+    }
+}
+
+@Composable
+fun ManageAnnouncementsContent(
+    announcements: List<AnnouncementEntity>,
+    onEditAnnouncement: (String) -> Unit,
+    onDeleteAnnouncement: (String) -> Unit,
+    contentPadding: PaddingValues = PaddingValues(0.dp)
+) {
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(contentPadding),
+        contentPadding = PaddingValues(16.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        itemsIndexed(announcements) { index, announcement ->
+            StaggeredAnimatedItem(index = index) {
+                ManageAnnouncementItem(
+                    announcement = announcement,
+                    onEdit = { onEditAnnouncement(announcement.id) },
+                    onDelete = { onDeleteAnnouncement(announcement.id) }
+                )
             }
         }
     }
