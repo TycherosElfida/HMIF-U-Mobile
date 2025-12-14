@@ -83,6 +83,62 @@ class EventRegistrationRepository @Inject constructor(
         }
     }
 
+    suspend fun checkInUser(qrData: String): Result<EventRegistrationEntity> {
+        return try {
+            // expected format: eventId_userId
+            val parts = qrData.split("_")
+            if (parts.size != 2) {
+                return Result.failure(IllegalArgumentException("Invalid QR Code format"))
+            }
+
+            val eventId = parts[0]
+            val userId = parts[1]
+            val registrationId = "${eventId}_${userId}"
+
+            // 1. Check Firestore for existing registration
+            val docSnap = collection.document(registrationId).get().await()
+            if (!docSnap.exists()) {
+                return Result.failure(Exception("Registration not found"))
+            }
+
+            // 2. Map snapshot
+            val registration = EventRegistrationEntity(
+                id = docSnap.id,
+                eventId = docSnap.getString("eventId") ?: "",
+                userId = docSnap.getString("userId") ?: "",
+                status = try {
+                    RegistrationStatus.valueOf(docSnap.getString("status") ?: "REGISTERED")
+                } catch (e: Exception) { RegistrationStatus.REGISTERED },
+                registeredAt = docSnap.getLong("registeredAt") ?: 0L,
+                checkedInAt = docSnap.getLong("checkedInAt"),
+                qrTicket = docSnap.getString("qrTicket")
+            )
+
+            // 3. Check if already checked in
+            if (registration.status == RegistrationStatus.CHECKED_IN) {
+                return Result.failure(Exception("User already checked in"))
+            }
+
+            // 4. Update status to CHECKED_IN
+            val updates = mapOf(
+                "status" to RegistrationStatus.CHECKED_IN.name,
+                "checkedInAt" to System.currentTimeMillis()
+            )
+            collection.document(registrationId).update(updates).await()
+
+            // 5. Update Local DB
+            val updatedRegistration = registration.copy(
+                status = RegistrationStatus.CHECKED_IN,
+                checkedInAt = System.currentTimeMillis()
+            )
+            eventRegistrationDao.insert(updatedRegistration)
+
+            Result.success(updatedRegistration)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
     private fun scheduleReminder(event: EventEntity) {
         val currentTime = System.currentTimeMillis()
         val triggerTime = event.startTime - TimeUnit.HOURS.toMillis(2)

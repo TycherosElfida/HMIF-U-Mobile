@@ -10,8 +10,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.QrCode
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -44,6 +47,7 @@ import com.example.hmifu_mobile.ui.theme.HmifTheme
 fun MyEventsScreen(
     onNavigateBack: () -> Unit,
     onEventClick: (String) -> Unit,
+    onViewTicket: (String) -> Unit,
     viewModel: MyEventsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -107,7 +111,24 @@ fun MyEventsScreen(
                         verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
                         items(events) { event ->
-                            EventCard(event = event, onClick = { onEventClick(event.id) })
+                            // Custom card content to include ticket button
+                            Column {
+                                EventCard(event = event, onClick = { onEventClick(event.id) })
+                                if (selectedTab == 0) { // Only show ticket for upcoming events
+                                    androidx.compose.material3.Button(
+                                        onClick = { onViewTicket(event.id) },
+                                        modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                                        colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                                            containerColor = MaterialTheme.colorScheme.primaryContainer,
+                                            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                                        )
+                                    ) {
+                                        Icon(Icons.Default.QrCode, contentDescription = null, modifier = Modifier.size(18.dp))
+                                        androidx.compose.foundation.layout.Spacer(Modifier.width(8.dp))
+                                        Text("View Ticket")
+                                    }
+                                }
+                            }
                         }
                     }
                 }

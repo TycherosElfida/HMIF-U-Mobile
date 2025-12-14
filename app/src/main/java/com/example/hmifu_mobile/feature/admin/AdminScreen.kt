@@ -24,6 +24,7 @@ import androidx.compose.material.icons.filled.People
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.SupervisorAccount
 import androidx.compose.material.icons.rounded.AdminPanelSettings
+import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material.icons.rounded.AccountBalanceWallet
 import androidx.compose.material.icons.rounded.School
 import androidx.compose.material3.Card
@@ -89,6 +90,7 @@ fun AdminScreen(
     onFinance: () -> Unit = {},
     onSecretariat: () -> Unit = {},
     onManageUsers: () -> Unit = {},
+    onScanTicket: () -> Unit = {},
     viewModel: AdminViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -337,6 +339,54 @@ fun AdminScreen(
                                         modifier = Modifier.rotate(180f)
                                     )
                                 }
+                            }
+                        }
+                    }
+                }
+
+                // Scan Ticket Action (Admin, Staff, Moderator, etc) - basically anyone with admin access
+                item {
+                    StaggeredAnimatedItem(index = 4) {
+                        GlassmorphicCard(
+                            modifier = Modifier.fillMaxWidth(),
+                            onClick = onScanTicket,
+                            cornerRadius = HmifTheme.cornerRadius.md
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(HmifTheme.spacing.md)
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(48.dp)
+                                        .clip(RoundedCornerShape(HmifTheme.cornerRadius.md))
+                                        .background(Color.Gray.copy(alpha = 0.15f)),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.QrCodeScanner, // Requires import
+                                        contentDescription = null,
+                                        tint = Color.Gray,
+                                        modifier = Modifier.size(26.dp)
+                                    )
+                                }
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = "Scan Event Ticket",
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                    Text(
+                                        text = "Check-in participants",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                                Icon(
+                                    Icons.AutoMirrored.Filled.ArrowBack,
+                                    contentDescription = "Go",
+                                    modifier = Modifier.rotate(180f)
+                                )
                             }
                         }
                     }

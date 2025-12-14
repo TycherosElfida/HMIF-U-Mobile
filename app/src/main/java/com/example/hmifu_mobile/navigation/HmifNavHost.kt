@@ -24,9 +24,12 @@ import com.example.hmifu_mobile.feature.auth.LoginScreen
 import com.example.hmifu_mobile.feature.auth.ProfileSetupScreen
 import com.example.hmifu_mobile.feature.auth.RegisterScreen
 
+import androidx.compose.material3.ExperimentalMaterial3Api
+
 /**
  * Main navigation host with authentication flow.
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HmifNavHost(modifier: Modifier = Modifier) {
     val navController = rememberNavController()
@@ -214,7 +217,21 @@ fun HmifNavHost(modifier: Modifier = Modifier) {
                 onNavigateBack = { navController.popBackStack() },
                 onEventClick = { eventId ->
                     navController.navigate("event_detail/$eventId")
+                },
+                onViewTicket = { eventId ->
+                    navController.navigate("ticket_screen/$eventId")
                 }
+            )
+        }
+
+        composable(
+            route = "ticket_screen/{eventId}",
+            arguments = listOf(navArgument("eventId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val eventId = backStackEntry.arguments?.getString("eventId") ?: ""
+            com.example.hmifu_mobile.feature.events.TicketScreen(
+                eventId = eventId,
+                onNavigateBack = { navController.popBackStack() }
             )
         }
 
@@ -231,7 +248,8 @@ fun HmifNavHost(modifier: Modifier = Modifier) {
                 },
                 onFinance = { navController.navigate("finance") },
                 onManageUsers = { navController.navigate("user_management") },
-                onManageResources = { navController.navigate("manage_resources") }
+                onManageResources = { navController.navigate("manage_resources") },
+                onScanTicket = { navController.navigate("scan_ticket") }
             )
         }
 
@@ -329,6 +347,12 @@ fun HmifNavHost(modifier: Modifier = Modifier) {
 
         composable("create_resource") {
             com.example.hmifu_mobile.feature.admin.resources.CreateResourceScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable("scan_ticket") {
+            com.example.hmifu_mobile.feature.admin.scan.ScanTicketScreen(
                 onNavigateBack = { navController.popBackStack() }
             )
         }
