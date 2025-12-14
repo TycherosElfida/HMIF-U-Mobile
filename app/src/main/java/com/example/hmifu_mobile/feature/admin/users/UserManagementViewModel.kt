@@ -26,37 +26,44 @@ class UserManagementViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(UserManagementUiState())
     val uiState: StateFlow<UserManagementUiState> = _uiState.asStateFlow()
+    
+    // Cache all users for client-side filtering
+    private var _cachedUsers: List<UserProfile> = emptyList()
 
     init {
-        // Initial load
-        searchUsers("")
-        
-        // Debounce search
+        // Initial load of all users
+        loadAllUsers()
+    }
+
+    private fun loadAllUsers() {
         viewModelScope.launch {
-            _uiState
-                .map { it.query }
-                .distinctUntilChanged()
-                .debounce(500)
-                .collect { query ->
-                    searchUsers(query)
+            _uiState.update { it.copy(isLoading = true) }
+            userRepository.fetchAllUsers()
+                .onSuccess { users ->
+                     _cachedUsers = users
+                    _uiState.update { it.copy(users = users, isLoading = false) }
+                }
+                .onFailure { error ->
+                    _uiState.update { it.copy(isLoading = false, errorMessage = error.message) }
                 }
         }
     }
 
     fun onQueryChange(query: String) {
         _uiState.update { it.copy(query = query) }
+        applyFilter(query)
     }
 
-    private fun searchUsers(query: String) {
-        viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true) }
-            userRepository.searchUsers(query)
-                .onSuccess { users ->
-                    _uiState.update { it.copy(users = users, isLoading = false) }
-                }
-                .onFailure { error ->
-                    _uiState.update { it.copy(isLoading = false, errorMessage = error.message) }
-                }
+    private fun applyFilter(query: String) {
+        if (query.isBlank()) {
+            _uiState.update { it.copy(users = _cachedUsers) }
+        } else {
+            val lowerQuery = query.lowercase()
+            val filtered = _cachedUsers.filter { user ->
+                user.name.lowercase().contains(lowerQuery) || 
+                user.nim.lowercase().contains(lowerQuery)
+            }
+            _uiState.update { it.copy(users = filtered) }
         }
     }
 
@@ -66,8 +73,8 @@ class UserManagementViewModel @Inject constructor(
             userRepository.updateUserRole(uid, role)
                 .onSuccess {
                     _uiState.update { it.copy(isLoading = false, successMessage = "Role updated to $role") }
-                    // Refresh list to show new role
-                    searchUsers(_uiState.value.query)
+                    // Reload to ensure consistency, or update local cache
+                    loadAllUsers() 
                 }
                 .onFailure { error ->
                     _uiState.update { it.copy(isLoading = false, errorMessage = error.message) }

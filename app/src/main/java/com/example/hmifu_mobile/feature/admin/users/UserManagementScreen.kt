@@ -86,7 +86,7 @@ fun UserManagementScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(HmifTheme.spacing.md),
-                placeholder = { Text("Search by name...") },
+                placeholder = { Text("Search by name or NIM...") },
                 leadingIcon = { Icon(Icons.Default.Search, null) },
                 singleLine = true,
                 shape = MaterialTheme.shapes.medium

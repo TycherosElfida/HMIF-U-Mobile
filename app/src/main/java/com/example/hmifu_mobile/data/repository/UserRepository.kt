@@ -166,6 +166,10 @@ class UserRepository @Inject constructor(
     /**
      * Search users by name (prefix match).
      */
+    /**
+     * Search users by name (prefix match).
+     * Keeping this for reference, but prefer fetchAllUsers for client-side flexibility.
+     */
     suspend fun searchUsers(query: String): Result<List<UserProfile>> {
         return try {
             val q = if (query.isBlank()) {
@@ -179,6 +183,36 @@ class UserRepository @Inject constructor(
             }
 
             val snapshot = q.get().await()
+            val users = snapshot.documents.mapNotNull { doc ->
+                if (!doc.exists()) return@mapNotNull null
+                UserProfile(
+                    uid = doc.id,
+                    email = doc.getString("email") ?: "",
+                    name = doc.getString("name") ?: "",
+                    nim = doc.getString("nim") ?: "",
+                    angkatan = doc.getString("angkatan") ?: "",
+                    concentration = doc.getString("concentration") ?: "",
+                    techStack = doc.getString("techStack") ?: "",
+                    photoBlob = doc.getBlob("photoBlob")?.toBytes(),
+                    role = doc.getString("role") ?: "member"
+                )
+            }
+            Result.success(users)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    /**
+     * Fetch all users (limit 1000) for client-side filtering.
+     */
+    suspend fun fetchAllUsers(): Result<List<UserProfile>> {
+        return try {
+            val snapshot = usersCollection
+                .limit(1000)
+                .get()
+                .await()
+            
             val users = snapshot.documents.mapNotNull { doc ->
                 if (!doc.exists()) return@mapNotNull null
                 UserProfile(

@@ -1,5 +1,6 @@
 package com.example.hmifu_mobile.ui.components
 
+
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
@@ -59,32 +60,58 @@ fun FloatingBottomNavigation(
     onNavigate: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val isDark = androidx.compose.foundation.isSystemInDarkTheme()
+
+    // Glassmorphism Colors based on Theme
+    val containerBrush = if (isDark) {
+        Brush.verticalGradient(
+            colors = listOf(
+                MaterialTheme.colorScheme.surface.copy(alpha = 0.95f),
+                MaterialTheme.colorScheme.surface.copy(alpha = 0.85f)
+            )
+        )
+    } else {
+        Brush.verticalGradient(
+            colors = listOf(
+                Color.White.copy(alpha = 0.95f),
+                Color.White.copy(alpha = 0.85f)
+            )
+        )
+    }
+
+    val borderBrush = if (isDark) {
+        Brush.verticalGradient(
+            colors = listOf(
+                Color.White.copy(alpha = 0.15f),
+                Color.White.copy(alpha = 0.05f)
+            )
+        )
+    } else {
+        Brush.verticalGradient(
+            colors = listOf(
+                Color.White.copy(alpha = 0.8f),
+                Color.White.copy(alpha = 0.2f)
+            )
+        )
+    }
+
+    val shadowSpotColor = if (isDark) Color.Black.copy(alpha = 0.5f) else HmifBlue.copy(alpha = 0.25f)
+    val shadowAmbientColor = if (isDark) Color.Black.copy(alpha = 0.3f) else HmifBlue.copy(alpha = 0.1f)
+
     Box(
         modifier = modifier
             .padding(horizontal = 24.dp, vertical = 24.dp)
             .shadow(
                 elevation = 12.dp,
                 shape = RoundedCornerShape(percent = 50), // Stadium shape
-                spotColor = HmifBlue.copy(alpha = 0.25f),
-                ambientColor = HmifBlue.copy(alpha = 0.1f)
+                spotColor = shadowSpotColor,
+                ambientColor = shadowAmbientColor
             )
             .clip(RoundedCornerShape(percent = 50))
-            .background(
-                brush = Brush.verticalGradient(
-                    colors = listOf(
-                        Color.White.copy(alpha = 0.95f),
-                        Color.White.copy(alpha = 0.85f)
-                    )
-                )
-            )
+            .background(brush = containerBrush)
             .border(
                 width = 1.dp,
-                brush = Brush.verticalGradient(
-                    colors = listOf(
-                        Color.White.copy(alpha = 0.8f),
-                        Color.White.copy(alpha = 0.2f)
-                    )
-                ),
+                brush = borderBrush,
                 shape = RoundedCornerShape(percent = 50)
             )
     ) {
