@@ -1,5 +1,7 @@
 package com.example.hmifu_mobile.feature.admin
 
+import android.content.Context
+import android.net.Uri
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -7,15 +9,18 @@ import com.example.hmifu_mobile.data.local.dao.EventDao
 import com.example.hmifu_mobile.data.local.entity.EventCategory
 import com.example.hmifu_mobile.data.local.entity.EventEntity
 import com.example.hmifu_mobile.data.repository.EventRepository
+import com.example.hmifu_mobile.util.ImageUtils
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
 import java.util.UUID
 import javax.inject.Inject
 
@@ -29,7 +34,7 @@ data class CreateEventUiState(
     val location: String = "",
     val isOnline: Boolean = false,
     val maxParticipants: String = "",
-    val imageUrl: String = "",
+    val imageBlob: ByteArray? = null,
     val id: String? = null,
     val startDate: Long = System.currentTimeMillis() + 86400000,
     val endDate: Long = System.currentTimeMillis() + 90000000,
@@ -40,6 +45,49 @@ data class CreateEventUiState(
     val isValid: Boolean
         get() = title.isNotBlank() && description.isNotBlank() &&
                 (isOnline || location.isNotBlank()) && startDate < endDate
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as CreateEventUiState
+
+        if (title != other.title) return false
+        if (description != other.description) return false
+        if (category != other.category) return false
+        if (location != other.location) return false
+        if (isOnline != other.isOnline) return false
+        if (maxParticipants != other.maxParticipants) return false
+        if (imageBlob != null) {
+            if (other.imageBlob == null) return false
+            if (!imageBlob.contentEquals(other.imageBlob)) return false
+        } else if (other.imageBlob != null) return false
+        if (id != other.id) return false
+        if (startDate != other.startDate) return false
+        if (endDate != other.endDate) return false
+        if (isLoading != other.isLoading) return false
+        if (isSuccess != other.isSuccess) return false
+        if (errorMessage != other.errorMessage) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = title.hashCode()
+        result = 31 * result + description.hashCode()
+        result = 31 * result + category.hashCode()
+        result = 31 * result + location.hashCode()
+        result = 31 * result + isOnline.hashCode()
+        result = 31 * result + maxParticipants.hashCode()
+        result = 31 * result + (imageBlob?.contentHashCode() ?: 0)
+        result = 31 * result + (id?.hashCode() ?: 0)
+        result = 31 * result + startDate.hashCode()
+        result = 31 * result + endDate.hashCode()
+        result = 31 * result + isLoading.hashCode()
+        result = 31 * result + isSuccess.hashCode()
+        result = 31 * result + (errorMessage?.hashCode() ?: 0)
+        return result
+    }
 }
 
 /**
@@ -77,7 +125,7 @@ class CreateEventViewModel @Inject constructor(
                         category = EventCategory.fromString(event.category),
                         location = event.location,
                         isOnline = event.isOnline,
-                        imageUrl = event.imageUrl ?: "",
+                        imageBlob = event.imageBlob,
                         maxParticipants = event.maxParticipants?.toString() ?: "",
                         startDate = event.startTime,
                         endDate = event.endTime,
@@ -116,8 +164,17 @@ class CreateEventViewModel @Inject constructor(
         }
     }
 
-    fun updateImageUrl(url: String) {
-        _uiState.update { it.copy(imageUrl = url) }
+    fun updateImage(context: Context, uri: Uri) {
+        viewModelScope.launch {
+            val bytes = withContext(Dispatchers.IO) {
+                ImageUtils.uriToBytes(context, uri)
+            }
+            if (bytes != null) {
+                _uiState.update { it.copy(imageBlob = bytes) }
+            } else {
+                _uiState.update { it.copy(errorMessage = "Failed to load image") }
+            }
+        }
     }
 
     fun updateStartDate(date: Long) {
@@ -143,63 +200,53 @@ class CreateEventViewModel @Inject constructor(
                 val now = System.currentTimeMillis()
                 val organizerId = auth.currentUser?.uid ?: ""
                 val maxPart = state.maxParticipants.toIntOrNull()
-                val finalImageUrl = state.imageUrl.ifBlank { null }
+                
+                // Construct Entity
+                val newEvent = EventEntity(
+                    id = id,
+                    title = state.title,
+                    description = state.description,
+                    category = state.category.name,
+                    location = if (state.isOnline) "Online" else state.location,
+                    isOnline = state.isOnline,
+                    meetingUrl = if (state.isOnline) state.location else null,
+                    startTime = state.startDate,
+                    endTime = state.endDate,
+                    maxParticipants = maxPart,
+                    currentParticipants = 0, // Reset for new, but we might want to preserve if editing... logic below handles it
+                    organizerId = organizerId,
+                    imageBlob = state.imageBlob,
+                    createdAt = now,
+                    updatedAt = now
+                )
 
                 if (state.id != null) {
-                    // Update existing
+                    // Updating existing event
                     val originalEvent = eventRepository.getById(state.id)
-                    val event = EventEntity(
-                        id = id,
-                        title = state.title,
-                        description = state.description,
-                        category = state.category.name,
-                        location = if (state.isOnline) "Online" else state.location,
-                        isOnline = state.isOnline,
-                        meetingUrl = if (state.isOnline) state.location else originalEvent?.meetingUrl,
-                        startTime = state.startDate,
-                        endTime = state.endDate,
-                        maxParticipants = maxPart,
+                    val updatedEvent = newEvent.copy(
                         currentParticipants = originalEvent?.currentParticipants ?: 0,
                         organizerId = originalEvent?.organizerId ?: organizerId,
-                        imageUrl = finalImageUrl,
                         createdAt = originalEvent?.createdAt ?: now,
-                        updatedAt = now
+                        meetingUrl = if (state.isOnline) state.location else originalEvent?.meetingUrl
                     )
-                    eventRepository.updateEvent(event).onFailure { throw it }
+                    
+                    eventRepository.updateEvent(updatedEvent).onFailure { throw it }
                 } else {
-                    // Create new
-                    val event = EventEntity(
-                        id = id,
-                        title = state.title,
-                        description = state.description,
-                        category = state.category.name,
-                        location = if (state.isOnline) "Online" else state.location,
-                        isOnline = state.isOnline,
-                        meetingUrl = if (state.isOnline) state.location else null,
-                        startTime = state.startDate,
-                        endTime = state.endDate,
-                        maxParticipants = maxPart,
-                        currentParticipants = 0,
-                        organizerId = organizerId,
-                        imageUrl = finalImageUrl,
-                        createdAt = now,
-                        updatedAt = now
-                    )
-
+                    // Creating new event
                     val data = mapOf(
                         "id" to id,
                         "title" to state.title,
                         "description" to state.description,
                         "category" to state.category.name,
-                        "location" to event.location,
+                        "location" to newEvent.location,
                         "isOnline" to state.isOnline,
-                        "meetingUrl" to event.meetingUrl,
+                        "meetingUrl" to newEvent.meetingUrl,
                         "startTime" to state.startDate,
                         "endTime" to state.endDate,
                         "maxParticipants" to maxPart,
                         "currentParticipants" to 0,
                         "organizerId" to organizerId,
-                        "imageUrl" to finalImageUrl,
+                        "imageBlob" to if (state.imageBlob != null) com.google.firebase.firestore.Blob.fromBytes(state.imageBlob) else null,
                         "createdAt" to now,
                         "updatedAt" to now
                     )
@@ -209,7 +256,7 @@ class CreateEventViewModel @Inject constructor(
                         .set(data)
                         .await()
                     
-                    eventDao.upsert(event)
+                    eventDao.upsert(newEvent)
                 }
 
                 _uiState.update {
@@ -230,3 +277,5 @@ class CreateEventViewModel @Inject constructor(
         _uiState.update { it.copy(errorMessage = null) }
     }
 }
+
+

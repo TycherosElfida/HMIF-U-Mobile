@@ -12,7 +12,23 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import com.example.hmifu_mobile.util.ImageUtils
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
@@ -118,16 +134,64 @@ fun CreateAnnouncementScreen(
                 enabled = !uiState.isLoading
             )
 
-            // Attachment URL
-            OutlinedTextField(
-                value = uiState.attachmentUrl,
-                onValueChange = viewModel::updateAttachmentUrl,
-                label = { Text("Attachment URL (Optional)") },
-                placeholder = { Text("https://ik.imagekit.io/...") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                enabled = !uiState.isLoading
+            // Banner Image Selection
+            Text(
+                text = "Banner Image",
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.Medium
             )
+
+            val context = LocalContext.current
+            val singlePhotoPickerLauncher = rememberLauncherForActivityResult(
+                contract = ActivityResultContracts.PickVisualMedia(),
+                onResult = { uri ->
+                    if (uri != null) {
+                        viewModel.updateImage(context, uri)
+                    }
+                }
+            )
+
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(12.dp))
+                    .clickable {
+                        singlePhotoPickerLauncher.launch(
+                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                        )
+                    },
+                contentAlignment = Alignment.Center
+            ) {
+                if (uiState.imageBlob != null) {
+                    val bitmap = remember(uiState.imageBlob) {
+                        ImageUtils.bytesToBitmap(uiState.imageBlob!!)
+                    }
+                    if (bitmap != null) {
+                        Image(
+                            bitmap = bitmap.asImageBitmap(),
+                            contentDescription = "Banner Image",
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop
+                        )
+                    }
+                } else {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Icon(
+                            imageVector = Icons.Default.Image,
+                            contentDescription = "Add Image",
+                            modifier = Modifier.size(48.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            text = "Tap to add banner image",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
 
             // Category selection
             Text(

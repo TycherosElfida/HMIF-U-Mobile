@@ -1,15 +1,20 @@
 package com.example.hmifu_mobile.feature.profile
 
+import android.content.Context
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.hmifu_mobile.data.repository.UserProfile
 import com.example.hmifu_mobile.data.repository.UserRepository
+import com.example.hmifu_mobile.util.ImageUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 /**
@@ -21,7 +26,8 @@ data class EditProfileUiState(
     val angkatan: String = "",
     val concentration: String = "",
     val techStack: String = "",
-    val photoUrl: String = "",
+    val photoBlob: ByteArray? = null,
+    val role: String = "member", // Preserve role
     val isLoading: Boolean = true,
     val isSaving: Boolean = false,
     val isSuccess: Boolean = false,
@@ -29,6 +35,45 @@ data class EditProfileUiState(
 ) {
     val isValid: Boolean
         get() = name.isNotBlank() && nim.isNotBlank() && angkatan.isNotBlank()
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as EditProfileUiState
+
+        if (name != other.name) return false
+        if (nim != other.nim) return false
+        if (angkatan != other.angkatan) return false
+        if (concentration != other.concentration) return false
+        if (techStack != other.techStack) return false
+        if (photoBlob != null) {
+            if (other.photoBlob == null) return false
+            if (!photoBlob.contentEquals(other.photoBlob)) return false
+        } else if (other.photoBlob != null) return false
+        if (role != other.role) return false
+        if (isLoading != other.isLoading) return false
+        if (isSaving != other.isSaving) return false
+        if (isSuccess != other.isSuccess) return false
+        if (errorMessage != other.errorMessage) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = name.hashCode()
+        result = 31 * result + nim.hashCode()
+        result = 31 * result + angkatan.hashCode()
+        result = 31 * result + concentration.hashCode()
+        result = 31 * result + techStack.hashCode()
+        result = 31 * result + (photoBlob?.contentHashCode() ?: 0)
+        result = 31 * result + role.hashCode()
+        result = 31 * result + isLoading.hashCode()
+        result = 31 * result + isSaving.hashCode()
+        result = 31 * result + isSuccess.hashCode()
+        result = 31 * result + (errorMessage?.hashCode() ?: 0)
+        return result
+    }
 }
 
 /**
@@ -59,7 +104,8 @@ class EditProfileViewModel @Inject constructor(
                             angkatan = profile.angkatan,
                             concentration = profile.concentration,
                             techStack = profile.techStack,
-                            photoUrl = profile.photoUrl ?: ""
+                            photoBlob = profile.photoBlob,
+                            role = profile.role // Load existing role
                         )
                     }
                 }.onFailure { e ->
@@ -101,8 +147,17 @@ class EditProfileViewModel @Inject constructor(
         _uiState.update { it.copy(techStack = techStack) }
     }
 
-    fun updatePhotoUrl(photoUrl: String) {
-        _uiState.update { it.copy(photoUrl = photoUrl) }
+    fun updatePhoto(context: Context, uri: Uri) {
+        viewModelScope.launch {
+            val bytes = withContext(Dispatchers.IO) {
+                ImageUtils.uriToBytes(context, uri)
+            }
+            if (bytes != null) {
+                _uiState.update { it.copy(photoBlob = bytes) }
+            } else {
+                _uiState.update { it.copy(errorMessage = "Failed to load image") }
+            }
+        }
     }
 
     fun saveProfile() {
@@ -125,7 +180,8 @@ class EditProfileViewModel @Inject constructor(
                     angkatan = state.angkatan,
                     concentration = state.concentration,
                     techStack = state.techStack,
-                    photoUrl = state.photoUrl.ifBlank { null }
+                    photoBlob = state.photoBlob,
+                    role = state.role // Preserve role
                 )
 
                 val result = userRepository.updateProfile(updatedProfile)

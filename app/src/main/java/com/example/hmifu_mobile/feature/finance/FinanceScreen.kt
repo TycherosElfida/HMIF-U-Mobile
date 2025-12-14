@@ -13,10 +13,11 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.AttachMoney
-import androidx.compose.material.icons.filled.MoneyOff
-import androidx.compose.material.icons.filled.TrendingDown
-import androidx.compose.material.icons.filled.TrendingUp
+import androidx.compose.material.icons.filled.Delete
+// import androidx.compose.material.icons.filled.AttachMoney
+// import androidx.compose.material.icons.filled.MoneyOff
+// import androidx.compose.material.icons.filled.TrendingDown
+// import androidx.compose.material.icons.filled.TrendingUp
 import androidx.compose.material.icons.rounded.AccountBalanceWallet
 import androidx.compose.material3.*
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
@@ -162,14 +163,14 @@ fun OverviewPage(uiState: FinanceUiState) {
                 SummaryCard(
                     title = "Income",
                     amount = uiState.totalIncome,
-                    icon = Icons.Default.TrendingUp,
+                    icon = Icons.Default.Add, // Keeping Add/Delete icons for summary as they are better than Trending
                     color = Success,
                     modifier = Modifier.weight(1f)
                 )
                 SummaryCard(
                     title = "Expense",
                     amount = uiState.totalExpense,
-                    icon = Icons.Default.TrendingDown,
+                    icon = Icons.Default.Delete, // Keeping Add/Delete icons for summary
                     color = Error,
                     modifier = Modifier.weight(1f)
                 )
@@ -243,7 +244,7 @@ fun SummaryCard(
 fun TransactionItem(transaction: TransactionEntity) {
     val isIncome = transaction.type == TransactionType.INCOME
     val color = if (isIncome) Success else Error
-    val icon = if (isIncome) Icons.Default.AttachMoney else Icons.Default.MoneyOff
+    val icon = if (isIncome) Icons.Default.Add else Icons.Default.Delete // Keeping Add/Delete icons for transaction type as well
 
     GlassmorphicCard(modifier = Modifier.fillMaxWidth()) {
         Row(
@@ -305,21 +306,32 @@ fun AddTransactionPage(
     ) {
         // Type Selector
         Row(modifier = Modifier.fillMaxWidth()) {
-            FilterChip(
-                selected = type == TransactionType.INCOME,
+            val isIncome = type == TransactionType.INCOME
+            Button(
                 onClick = { type = TransactionType.INCOME },
-                label = { Text("Income") },
-                leadingIcon = { Icon(Icons.Default.TrendingUp, null) },
-                modifier = Modifier.weight(1f)
-            )
+                modifier = Modifier.weight(1f),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = if (isIncome) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
+                    contentColor = if (isIncome) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            ) {
+                Icon(Icons.Default.Add, null) // Was TrendingUp
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Income")
+            }
             Spacer(modifier = Modifier.width(HmifTheme.spacing.md))
-            FilterChip(
-                selected = type == TransactionType.EXPENSE,
+            Button(
                 onClick = { type = TransactionType.EXPENSE },
-                label = { Text("Expense") },
-                leadingIcon = { Icon(Icons.Default.TrendingDown, null) },
-                modifier = Modifier.weight(1f)
-            )
+                modifier = Modifier.weight(1f),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = if (!isIncome) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
+                    contentColor = if (!isIncome) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            ) {
+                Icon(Icons.Default.Delete, null) // Was TrendingDown
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Expense")
+            }
         }
 
         OutlinedTextField(

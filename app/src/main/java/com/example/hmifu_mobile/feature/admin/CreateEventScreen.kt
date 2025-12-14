@@ -1,11 +1,19 @@
 package com.example.hmifu_mobile.feature.admin
 
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -16,6 +24,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Image
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -45,6 +54,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.example.hmifu_mobile.data.local.entity.EventCategory
 import com.example.hmifu_mobile.ui.components.LoadingButton
@@ -132,16 +142,65 @@ fun CreateEventScreen(
                 enabled = !uiState.isLoading
             )
 
-            // Image URL (ImageKit)
-            OutlinedTextField(
-                value = uiState.imageUrl,
-                onValueChange = viewModel::updateImageUrl,
-                label = { Text("Image URL (Optional)") },
-                placeholder = { Text("https://ik.imagekit.io/...") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                enabled = !uiState.isLoading
+            // Event Banner Picker
+            Text(
+                text = "Event Banner (Optional)",
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.Medium
             )
+            
+            val context = androidx.compose.ui.platform.LocalContext.current
+            val launcher = androidx.activity.compose.rememberLauncherForActivityResult(
+                contract = androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia()
+            ) { uri ->
+                uri?.let { viewModel.updateImage(context, it) }
+            }
+
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp)
+                    .clip(MaterialTheme.shapes.medium)
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                    .clickable(enabled = !uiState.isLoading) {
+                        launcher.launch(
+                            androidx.activity.result.PickVisualMediaRequest(
+                                androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia.ImageOnly
+                            )
+                        )
+                    }
+                    .border(1.dp, MaterialTheme.colorScheme.outlineVariant, MaterialTheme.shapes.medium),
+                contentAlignment = androidx.compose.ui.Alignment.Center
+            ) {
+                if (uiState.imageBlob != null) {
+                    val bitmap = remember(uiState.imageBlob) {
+                        com.example.hmifu_mobile.util.ImageUtils.bytesToBitmap(uiState.imageBlob)
+                    }
+                    if (bitmap != null) {
+                        Image(
+                            bitmap = bitmap.asImageBitmap(),
+                            contentDescription = "Event Banner",
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = androidx.compose.ui.layout.ContentScale.Crop
+                        )
+                    }
+                } else {
+                    Column(horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally) {
+                        Icon(
+                            Icons.Default.Image,
+                            contentDescription = "Upload",
+                            modifier = Modifier.size(48.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "Tap to upload image",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
 
             // Category selection
             Text(

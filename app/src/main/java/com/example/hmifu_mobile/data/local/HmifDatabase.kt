@@ -38,7 +38,7 @@ import com.example.hmifu_mobile.data.local.entity.DocumentEntity
         TransactionEntity::class,
         DocumentEntity::class
     ],
-    version = 7, // Bumped for schema changes - Secretariat Module
+    version = 9, // Bumped for schema changes - Announcement Blob Refactor
     exportSchema = false
 )
 @TypeConverters(Converters::class)

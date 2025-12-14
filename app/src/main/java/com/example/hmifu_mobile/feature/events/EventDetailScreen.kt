@@ -41,6 +41,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.example.hmifu_mobile.data.local.entity.EventCategory
 import com.example.hmifu_mobile.data.local.entity.EventEntity
@@ -140,8 +141,8 @@ private fun EventDetailContent(
     ) {
         // Hero Image
         item {
-            if (!event.imageUrl.isNullOrBlank()) {
-                HeroImage(imageUrl = event.imageUrl, title = event.title)
+            if (event.imageBlob != null) {
+                HeroImage(imageBlob = event.imageBlob, title = event.title)
             }
         }
 
@@ -192,16 +193,28 @@ private fun EventDetailContent(
 // ════════════════════════════════════════════════════════════════
 
 @Composable
-private fun HeroImage(imageUrl: String, title: String) {
+private fun HeroImage(imageBlob: ByteArray, title: String) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .height(220.dp)
     ) {
-        EventBannerImage(
-            path = imageUrl,
-            modifier = Modifier.fillMaxSize()
-        )
+        val bitmap = androidx.compose.runtime.remember(imageBlob) {
+            com.example.hmifu_mobile.util.ImageUtils.bytesToBitmap(imageBlob)
+        }
+
+        if (bitmap != null) {
+            androidx.compose.foundation.Image(
+                bitmap = bitmap.asImageBitmap(),
+                contentDescription = "Event Banner for $title",
+                modifier = Modifier.fillMaxSize(),
+                contentScale = androidx.compose.ui.layout.ContentScale.Crop
+            )
+        } else {
+             Box(modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.surfaceVariant))
+        }
 
         // Gradient overlay
         Box(

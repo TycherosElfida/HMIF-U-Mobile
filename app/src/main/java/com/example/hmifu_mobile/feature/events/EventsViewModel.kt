@@ -100,4 +100,17 @@ class EventsViewModel @Inject constructor(
     fun clearError() {
         _uiState.update { it.copy(errorMessage = null) }
     }
+    fun deleteEvent(eventId: String) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true) }
+            eventRepository.deleteEvent(eventId)
+                .onSuccess {
+                    _uiState.update { it.copy(isLoading = false) }
+                    // Refresh is handled by Flow observation
+                }
+                .onFailure { e ->
+                    _uiState.update { it.copy(isLoading = false, errorMessage = e.message) }
+                }
+        }
+    }
 }

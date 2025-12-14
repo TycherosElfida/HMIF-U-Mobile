@@ -50,6 +50,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.example.hmifu_mobile.data.repository.UserProfile
 import com.example.hmifu_mobile.ui.components.GlassmorphicCard
@@ -256,12 +257,30 @@ private fun ProfileHeaderCard(
                     .background(Color.White.copy(alpha = 0.2f))
                     .border(3.dp, Color.White.copy(alpha = 0.5f), CircleShape)
             ) {
-                if (!profile.photoUrl.isNullOrBlank()) {
-                    ProfileAvatarImage(
-                        path = profile.photoUrl,
-                        modifier = Modifier.fillMaxSize(),
-                        size = 100
-                    )
+                if (profile.photoBlob != null) {
+                    val bitmap = remember(profile.photoBlob) {
+                        com.example.hmifu_mobile.util.ImageUtils.bytesToBitmap(profile.photoBlob)
+                    }
+                    if (bitmap != null) {
+                        androidx.compose.foundation.Image(
+                            bitmap = bitmap.asImageBitmap(),
+                            contentDescription = "Profile Picture",
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = androidx.compose.ui.layout.ContentScale.Crop
+                        )
+                    } else {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Person,
+                                contentDescription = null,
+                                modifier = Modifier.size(48.dp),
+                                tint = Color.White
+                            )
+                        }
+                    }
                 } else {
                     Box(
                         modifier = Modifier.fillMaxSize(),

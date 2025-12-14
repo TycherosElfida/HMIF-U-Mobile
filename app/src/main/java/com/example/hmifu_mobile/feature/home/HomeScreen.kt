@@ -54,6 +54,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.hmifu_mobile.data.local.entity.AnnouncementCategory
 import com.example.hmifu_mobile.data.local.entity.AnnouncementEntity
@@ -136,7 +137,7 @@ fun HomeScreen(
                         nim = uiState.userNim.ifBlank { "412022XXX" },
                         angkatan = uiState.userAngkatan.ifBlank { "2022" },
                         points = uiState.userPoints,
-                        photoUrl = uiState.userPhotoUrl,
+                        photoBlob = uiState.userPhotoBlob,
                         onClick = onMemberCardClick
                     )
                 }
@@ -289,7 +290,7 @@ private fun DigitalMembershipCard(
     nim: String,
     angkatan: String,
     points: Int,
-    photoUrl: String?,
+    photoBlob: ByteArray?,
     onClick: () -> Unit
 ) {
     HeroGlassmorphicCard(
@@ -351,15 +352,26 @@ private fun DigitalMembershipCard(
                     .border(2.dp, Color.White.copy(alpha = 0.5f), RoundedCornerShape(HmifTheme.cornerRadius.md)),
                 contentAlignment = Alignment.Center
             ) {
-                if (!photoUrl.isNullOrBlank()) {
-                    com.example.hmifu_mobile.ui.components.ImageKitImageWithAspectRatio(
-                        path = photoUrl,
-                        contentDescription = "Profile Picture",
-                        modifier = Modifier.fillMaxSize(),
-                        height = 100f,
-                        aspectRatioWidth = 1,
-                        aspectRatioHeight = 1
-                    )
+                if (photoBlob != null) {
+                    val bitmap = remember(photoBlob) {
+                        com.example.hmifu_mobile.util.ImageUtils.bytesToBitmap(photoBlob)
+                    }
+                    if (bitmap != null) {
+                        androidx.compose.foundation.Image(
+                            bitmap = bitmap.asImageBitmap(),
+                            contentDescription = "Profile Picture",
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = androidx.compose.ui.layout.ContentScale.Crop
+                        )
+                    } else {
+                        // Fallback icon if bitmap decoding fails
+                        Icon(
+                            imageVector = Icons.Default.Person,
+                            contentDescription = null,
+                            modifier = Modifier.size(48.dp),
+                            tint = Color.White
+                        )
+                    }
                 } else {
                     Icon(
                         imageVector = Icons.Default.Person,
@@ -421,7 +433,7 @@ private fun QuickActionsSection(
             )
             QuickActionCard(
                 icon = Icons.Rounded.Book,
-                label = "Resources",
+                label = "Bank Soal",
                 color = HmifPurple,
                 onClick = onResourcesClick,
                 modifier = Modifier.weight(1f)
@@ -584,6 +596,24 @@ private fun AnnouncementCard(announcement: AnnouncementEntity) {
         cornerRadius = HmifTheme.cornerRadius.lg
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(HmifTheme.spacing.sm)) {
+            // Banner Image
+            if (announcement.imageBlob != null) {
+                val bitmap = remember(announcement.imageBlob) {
+                    com.example.hmifu_mobile.util.ImageUtils.bytesToBitmap(announcement.imageBlob)
+                }
+                if (bitmap != null) {
+                    androidx.compose.foundation.Image(
+                        bitmap = bitmap.asImageBitmap(),
+                        contentDescription = announcement.title,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(150.dp)
+                            .clip(RoundedCornerShape(HmifTheme.cornerRadius.md)),
+                        contentScale = androidx.compose.ui.layout.ContentScale.Crop
+                    )
+                }
+            }
+
             // Header row
             Row(
                 modifier = Modifier.fillMaxWidth(),

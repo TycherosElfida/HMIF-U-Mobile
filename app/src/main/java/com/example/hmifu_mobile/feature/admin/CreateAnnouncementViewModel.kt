@@ -1,13 +1,19 @@
 package com.example.hmifu_mobile.feature.admin
 
+import android.content.Context
+import android.net.Uri
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.hmifu_mobile.util.ImageUtils
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import com.example.hmifu_mobile.data.local.dao.AnnouncementDao
 import com.example.hmifu_mobile.data.local.entity.AnnouncementCategory
 import com.example.hmifu_mobile.data.local.entity.AnnouncementEntity
 import com.example.hmifu_mobile.data.repository.AnnouncementRepository
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.Blob
 import com.google.firebase.firestore.FirebaseFirestore
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -27,7 +33,7 @@ data class CreateAnnouncementUiState(
     val body: String = "",
     val category: AnnouncementCategory = AnnouncementCategory.GENERAL,
     val isPinned: Boolean = false,
-    val attachmentUrl: String = "",
+    val imageBlob: ByteArray? = null,
     val id: String? = null,
     val isLoading: Boolean = false,
     val isSuccess: Boolean = false,
@@ -35,6 +41,41 @@ data class CreateAnnouncementUiState(
 ) {
     val isValid: Boolean
         get() = title.isNotBlank() && body.isNotBlank()
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as CreateAnnouncementUiState
+
+        if (title != other.title) return false
+        if (body != other.body) return false
+        if (category != other.category) return false
+        if (isPinned != other.isPinned) return false
+        if (imageBlob != null) {
+            if (other.imageBlob == null) return false
+            if (!imageBlob.contentEquals(other.imageBlob)) return false
+        } else if (other.imageBlob != null) return false
+        if (id != other.id) return false
+        if (isLoading != other.isLoading) return false
+        if (isSuccess != other.isSuccess) return false
+        if (errorMessage != other.errorMessage) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = title.hashCode()
+        result = 31 * result + body.hashCode()
+        result = 31 * result + category.hashCode()
+        result = 31 * result + isPinned.hashCode()
+        result = 31 * result + (imageBlob?.contentHashCode() ?: 0)
+        result = 31 * result + (id?.hashCode() ?: 0)
+        result = 31 * result + isLoading.hashCode()
+        result = 31 * result + isSuccess.hashCode()
+        result = 31 * result + (errorMessage?.hashCode() ?: 0)
+        return result
+    }
 }
 
 /**
@@ -71,7 +112,7 @@ class CreateAnnouncementViewModel @Inject constructor(
                         body = announcement.body,
                         category = AnnouncementCategory.fromString(announcement.category),
                         isPinned = announcement.isPinned,
-                        attachmentUrl = announcement.attachmentUrl ?: "",
+                        imageBlob = announcement.imageBlob,
                         isLoading = false
                     )
                 }
@@ -97,8 +138,17 @@ class CreateAnnouncementViewModel @Inject constructor(
         _uiState.update { it.copy(isPinned = isPinned) }
     }
 
-    fun updateAttachmentUrl(url: String) {
-        _uiState.update { it.copy(attachmentUrl = url) }
+    fun updateImage(context: Context, uri: Uri) {
+        viewModelScope.launch {
+            val bytes = withContext(Dispatchers.IO) {
+                ImageUtils.uriToBytes(context, uri)
+            }
+            if (bytes != null) {
+                _uiState.update { it.copy(imageBlob = bytes) }
+            } else {
+                _uiState.update { it.copy(errorMessage = "Failed to load image") }
+            }
+        }
     }
 
     fun saveAnnouncement() {
@@ -115,7 +165,6 @@ class CreateAnnouncementViewModel @Inject constructor(
                 val id = state.id ?: UUID.randomUUID().toString()
                 val now = System.currentTimeMillis()
                 val authorId = auth.currentUser?.uid ?: ""
-                val attachment = state.attachmentUrl.ifBlank { null }
                 
                 if (state.id != null) {
                     // Update existing
@@ -128,7 +177,7 @@ class CreateAnnouncementViewModel @Inject constructor(
                         isPinned = state.isPinned,
                         authorId = original?.authorId ?: authorId,
                         authorName = original?.authorName ?: "",
-                        attachmentUrl = attachment,
+                        imageBlob = state.imageBlob,
                         createdAt = original?.createdAt ?: now,
                         updatedAt = now
                     )
@@ -142,7 +191,7 @@ class CreateAnnouncementViewModel @Inject constructor(
                         category = state.category.name,
                         isPinned = state.isPinned,
                         authorId = authorId,
-                        attachmentUrl = attachment,
+                        imageBlob = state.imageBlob,
                         createdAt = now,
                         updatedAt = now
                     )
@@ -154,7 +203,7 @@ class CreateAnnouncementViewModel @Inject constructor(
                         "category" to state.category.name,
                         "isPinned" to state.isPinned,
                         "authorId" to authorId,
-                        "attachmentUrl" to attachment,
+                        "imageBlob" to if (state.imageBlob != null) Blob.fromBytes(state.imageBlob) else null,
                         "createdAt" to now,
                         "updatedAt" to now
                     )

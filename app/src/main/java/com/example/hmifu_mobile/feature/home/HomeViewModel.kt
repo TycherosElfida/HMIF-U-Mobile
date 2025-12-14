@@ -26,10 +26,47 @@ data class HomeUiState(
     val userName: String = "",
     val userNim: String = "",
     val userAngkatan: String = "",
-    val userPhotoUrl: String? = null,
+    val userPhotoBlob: ByteArray? = null,
     val userPoints: Int = 0,
     val hasUnreadNotifications: Boolean = false
-)
+) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as HomeUiState
+
+        if (announcements != other.announcements) return false
+        if (selectedCategory != other.selectedCategory) return false
+        if (isLoading != other.isLoading) return false
+        if (errorMessage != other.errorMessage) return false
+        if (userName != other.userName) return false
+        if (userNim != other.userNim) return false
+        if (userAngkatan != other.userAngkatan) return false
+        if (userPhotoBlob != null) {
+            if (other.userPhotoBlob == null) return false
+            if (!userPhotoBlob.contentEquals(other.userPhotoBlob)) return false
+        } else if (other.userPhotoBlob != null) return false
+        if (userPoints != other.userPoints) return false
+        if (hasUnreadNotifications != other.hasUnreadNotifications) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = announcements.hashCode()
+        result = 31 * result + (selectedCategory?.hashCode() ?: 0)
+        result = 31 * result + isLoading.hashCode()
+        result = 31 * result + (errorMessage?.hashCode() ?: 0)
+        result = 31 * result + userName.hashCode()
+        result = 31 * result + userNim.hashCode()
+        result = 31 * result + userAngkatan.hashCode()
+        result = 31 * result + (userPhotoBlob?.contentHashCode() ?: 0)
+        result = 31 * result + userPoints
+        result = 31 * result + hasUnreadNotifications.hashCode()
+        return result
+    }
+}
 
 /**
  * ViewModel for Home screen with announcement feed.
@@ -57,7 +94,7 @@ class HomeViewModel @Inject constructor(
                         userName = profile.name.ifBlank { "Member" },
                         userNim = profile.nim,
                         userAngkatan = profile.angkatan,
-                        userPhotoUrl = profile.photoUrl,
+                        userPhotoBlob = profile.photoBlob,
                         userPoints = 0 // TODO: Implement points system
                     )
                 }
@@ -71,7 +108,7 @@ class HomeViewModel @Inject constructor(
                             userName = user.name.ifBlank { "Member" },
                             userNim = user.nim,
                             userAngkatan = user.angkatan,
-                            userPhotoUrl = user.photoUrl,
+                            userPhotoBlob = user.photoBlob,
                             userPoints = user.points
                         )
                     }

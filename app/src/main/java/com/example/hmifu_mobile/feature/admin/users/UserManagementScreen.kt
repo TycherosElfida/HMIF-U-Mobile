@@ -18,6 +18,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.hmifu_mobile.data.repository.UserProfile
 import com.example.hmifu_mobile.ui.components.GlassmorphicCard
@@ -123,8 +124,7 @@ fun UserItem(
             modifier = Modifier.padding(HmifTheme.spacing.sm),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            if (user.photoUrl != null) {
-                // AsyncImage removed due to missing dependency
+            if (user.photoBlob != null) {
                 Box(
                     modifier = Modifier
                         .size(50.dp)
@@ -132,7 +132,19 @@ fun UserItem(
                         .background(MaterialTheme.colorScheme.surfaceVariant),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(user.name.take(1))
+                    val bitmap = remember(user.photoBlob) {
+                        com.example.hmifu_mobile.util.ImageUtils.bytesToBitmap(user.photoBlob)
+                    }
+                    if (bitmap != null) {
+                        androidx.compose.foundation.Image(
+                            bitmap = bitmap.asImageBitmap(),
+                            contentDescription = "User Avatar",
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop
+                        )
+                    } else {
+                        Text(user.name.take(1))
+                    }
                 }
             } else {
                 Box(
@@ -142,7 +154,7 @@ fun UserItem(
                         .background(MaterialTheme.colorScheme.surfaceVariant),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(Icons.Default.Person, null)
+                    Text(user.name.take(1))
                 }
             }
             

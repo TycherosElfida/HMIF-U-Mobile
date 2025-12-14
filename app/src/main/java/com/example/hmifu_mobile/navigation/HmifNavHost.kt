@@ -99,7 +99,14 @@ fun HmifNavHost(modifier: Modifier = Modifier) {
                     }
                 }
             ) {
-                com.example.hmifu_mobile.feature.home.HomeScreen()
+                com.example.hmifu_mobile.feature.home.HomeScreen(
+                    onNotificationsClick = { /* TODO */ },
+                    onMemberCardClick = { navController.navigate("member_card") },
+                    onScanQrClick = { navController.navigate("member_card") },
+                    onResourcesClick = { navController.navigate("resources") },
+                    onCompetitionsClick = { navController.navigate("category_feed/COMPETITION") },
+                    onCareersClick = { navController.navigate("category_feed/CAREER") }
+                )
             }
         }
 
@@ -223,7 +230,8 @@ fun HmifNavHost(modifier: Modifier = Modifier) {
                     navController.navigate("event_registrants/$eventId")
                 },
                 onFinance = { navController.navigate("finance") },
-                onManageUsers = { navController.navigate("user_management") }
+                onManageUsers = { navController.navigate("user_management") },
+                onManageResources = { navController.navigate("manage_resources") }
             )
         }
 
@@ -309,6 +317,31 @@ fun HmifNavHost(modifier: Modifier = Modifier) {
             com.example.hmifu_mobile.feature.qr.QrScannerScreen(
                 eventId = backStackEntry.arguments?.getString("eventId") ?: "",
                 onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable("manage_resources") {
+            com.example.hmifu_mobile.feature.admin.resources.ManageResourcesScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToCreate = { navController.navigate("create_resource") }
+            )
+        }
+
+        composable("create_resource") {
+            com.example.hmifu_mobile.feature.admin.resources.CreateResourceScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(
+            route = "category_feed/{categoryType}",
+            arguments = listOf(navArgument("categoryType") { type = NavType.StringType })
+        ) {
+            com.example.hmifu_mobile.feature.home.CategoryFeedScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onEventClick = { eventId ->
+                    navController.navigate("event_detail/$eventId")
+                }
             )
         }
     }

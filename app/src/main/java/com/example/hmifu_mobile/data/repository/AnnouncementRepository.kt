@@ -2,6 +2,7 @@ package com.example.hmifu_mobile.data.repository
 
 import com.example.hmifu_mobile.data.local.dao.AnnouncementDao
 import com.example.hmifu_mobile.data.local.entity.AnnouncementEntity
+import com.google.firebase.firestore.Blob
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import kotlinx.coroutines.CoroutineScope
@@ -63,7 +64,7 @@ class AnnouncementRepository @Inject constructor(
                                 authorId = doc.getString("authorId") ?: "",
                                 authorName = doc.getString("authorName") ?: "",
                                 isPinned = doc.getBoolean("isPinned") ?: false,
-                                attachmentUrl = doc.getString("attachmentUrl"),
+                                imageBlob = doc.getBlob("imageBlob")?.toBytes(),
                                 createdAt = doc.getLong("createdAt") ?: System.currentTimeMillis(),
                                 updatedAt = doc.getLong("updatedAt") ?: System.currentTimeMillis()
                             )
@@ -101,7 +102,7 @@ class AnnouncementRepository @Inject constructor(
                 "authorId" to announcement.authorId,
                 "authorName" to announcement.authorName,
                 "isPinned" to announcement.isPinned,
-                "attachmentUrl" to announcement.attachmentUrl,
+                "imageBlob" to if (announcement.imageBlob != null) Blob.fromBytes(announcement.imageBlob) else null,
                 "createdAt" to announcement.createdAt,
                 "updatedAt" to announcement.updatedAt
             )
@@ -122,7 +123,7 @@ class AnnouncementRepository @Inject constructor(
                 "body" to announcement.body,
                 "category" to announcement.category,
                 "isPinned" to announcement.isPinned,
-                "attachmentUrl" to announcement.attachmentUrl,
+                "imageBlob" to if (announcement.imageBlob != null) Blob.fromBytes(announcement.imageBlob) else null,
                 "updatedAt" to System.currentTimeMillis()
             )
             collection.document(announcement.id).update(data).await()

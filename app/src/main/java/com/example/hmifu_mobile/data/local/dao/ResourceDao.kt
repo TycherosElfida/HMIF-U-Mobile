@@ -29,6 +29,12 @@ interface ResourceDao {
     @Upsert
     suspend fun upsertResources(resources: List<ResourceEntity>)
 
+    @Upsert
+    suspend fun upsert(resource: ResourceEntity)
+
+    @Query("DELETE FROM resources WHERE id = :id")
+    suspend fun delete(id: String)
+
     @Query("DELETE FROM resources")
     suspend fun clearAll()
 }

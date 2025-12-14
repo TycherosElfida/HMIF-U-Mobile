@@ -80,7 +80,7 @@ class EventRepository @Inject constructor(
                                     ?: 0,
                                 organizerId = doc.getString("organizerId") ?: "",
                                 organizerName = doc.getString("organizerName") ?: "",
-                                imageUrl = doc.getString("imageUrl"),
+                                imageBlob = doc.getBlob("imageBlob")?.toBytes(),
                                 isPinned = doc.getBoolean("isPinned") ?: false,
                                 createdAt = doc.getLong("createdAt") ?: System.currentTimeMillis(),
                                 updatedAt = doc.getLong("updatedAt") ?: System.currentTimeMillis()
@@ -147,11 +147,23 @@ class EventRepository @Inject constructor(
                 "endTime" to event.endTime,
                 "registrationDeadline" to event.registrationDeadline,
                 "maxParticipants" to event.maxParticipants,
-                "imageUrl" to event.imageUrl,
+                "imageBlob" to if (event.imageBlob != null) com.google.firebase.firestore.Blob.fromBytes(event.imageBlob) else null,
                 "updatedAt" to System.currentTimeMillis()
             )
             collection.document(event.id).update(data).await()
             eventDao.upsert(event.copy(updatedAt = System.currentTimeMillis()))
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+    /**
+     * Delete an event.
+     */
+    suspend fun deleteEvent(eventId: String): Result<Unit> {
+        return try {
+            collection.document(eventId).delete().await()
+            eventDao.delete(eventId)
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)

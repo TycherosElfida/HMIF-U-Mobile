@@ -16,7 +16,7 @@ data class UserEntity(
     val angkatan: String = "",
     val concentration: String = "",
     val techStack: String = "",
-    val photoUrl: String? = null,
+    val photoBlob: ByteArray? = null,
     val role: String = ROLE_MEMBER,
     val points: Int = 0,
     val membershipStatus: String = "active",

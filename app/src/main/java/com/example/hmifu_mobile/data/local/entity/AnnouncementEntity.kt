@@ -16,11 +16,50 @@ data class AnnouncementEntity(
     val authorId: String,
     val authorName: String = "",
     val isPinned: Boolean = false,
-    val attachmentUrl: String? = null,
+    val imageBlob: ByteArray? = null,
     val createdAt: Long,
     val updatedAt: Long = createdAt,
     val syncedAt: Long = System.currentTimeMillis()
-)
+) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as AnnouncementEntity
+
+        if (id != other.id) return false
+        if (title != other.title) return false
+        if (body != other.body) return false
+        if (category != other.category) return false
+        if (authorId != other.authorId) return false
+        if (authorName != other.authorName) return false
+        if (isPinned != other.isPinned) return false
+        if (imageBlob != null) {
+            if (other.imageBlob == null) return false
+            if (!imageBlob.contentEquals(other.imageBlob)) return false
+        } else if (other.imageBlob != null) return false
+        if (createdAt != other.createdAt) return false
+        if (updatedAt != other.updatedAt) return false
+        if (syncedAt != other.syncedAt) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = id.hashCode()
+        result = 31 * result + title.hashCode()
+        result = 31 * result + body.hashCode()
+        result = 31 * result + category.hashCode()
+        result = 31 * result + authorId.hashCode()
+        result = 31 * result + authorName.hashCode()
+        result = 31 * result + isPinned.hashCode()
+        result = 31 * result + (imageBlob?.contentHashCode() ?: 0)
+        result = 31 * result + createdAt.hashCode()
+        result = 31 * result + updatedAt.hashCode()
+        result = 31 * result + syncedAt.hashCode()
+        return result
+    }
+}
 
 /**
  * Announcement categories.

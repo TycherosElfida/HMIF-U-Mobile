@@ -1,9 +1,14 @@
 package com.example.hmifu_mobile.feature.profile
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -38,8 +43,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.example.hmifu_mobile.ui.components.GlassmorphicCard
 import com.example.hmifu_mobile.ui.components.GradientButton
@@ -135,16 +142,69 @@ fun EditProfileScreen(
                                     fontWeight = FontWeight.SemiBold
                                 )
 
-                                // Photo URL
-                                StyledTextField(
-                                    value = uiState.photoUrl,
-                                    onValueChange = viewModel::updatePhotoUrl,
-                                    label = "Profile Picture URL",
-                                    placeholder = "https://...",
-                                    icon = Icons.Default.Image,
-                                    iconColor = HmifPurple,
-                                    enabled = !uiState.isSaving
-                                )
+                                // Photo/Avatar Picker
+                                Box(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    contentAlignment = androidx.compose.ui.Alignment.Center
+                                ) {
+                                    val context = androidx.compose.ui.platform.LocalContext.current
+                                    val launcher = androidx.activity.compose.rememberLauncherForActivityResult(
+                                        contract = androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia()
+                                    ) { uri ->
+                                        uri?.let { viewModel.updatePhoto(context, it) }
+                                    }
+
+                                    Box(
+                                        modifier = Modifier
+                                            .size(120.dp)
+                                            .clip(RoundedCornerShape(60.dp))
+                                            .background(if (uiState.photoBlob != null) Color.Transparent else HmifPurple.copy(alpha = 0.1f))
+                                            .clickable(enabled = !uiState.isSaving) {
+                                                launcher.launch(
+                                                    androidx.activity.result.PickVisualMediaRequest(
+                                                        androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia.ImageOnly
+                                                    )
+                                                )
+                                            }
+                                            .border(2.dp, HmifPurple, RoundedCornerShape(60.dp)),
+                                        contentAlignment = androidx.compose.ui.Alignment.Center
+                                    ) {
+                                        if (uiState.photoBlob != null) {
+                                            val bitmap = remember(uiState.photoBlob) {
+                                                com.example.hmifu_mobile.util.ImageUtils.bytesToBitmap(uiState.photoBlob)
+                                            }
+                                            if (bitmap != null) {
+                                                androidx.compose.foundation.Image(
+                                                    bitmap = bitmap.asImageBitmap(),
+                                                    contentDescription = "Profile Picture",
+                                                    modifier = Modifier.fillMaxSize(),
+                                                    contentScale = androidx.compose.ui.layout.ContentScale.Crop
+                                                )
+                                            }
+                                        } else {
+                                            Icon(
+                                                Icons.Default.Image,
+                                                contentDescription = "Upload",
+                                                modifier = Modifier.size(40.dp),
+                                                tint = HmifPurple
+                                            )
+                                        }
+                                        
+                                        // Edit overlay
+                                        Box(
+                                            modifier = Modifier
+                                                .fillMaxSize()
+                                                .background(Color.Black.copy(alpha = 0.3f)),
+                                            contentAlignment = androidx.compose.ui.Alignment.Center
+                                        ) {
+                                            Icon(
+                                                Icons.Default.Image,
+                                                contentDescription = "Edit",
+                                                tint = Color.White
+                                            )
+                                        }
+                                    }
+                                }
 
                                 // Name
                                 StyledTextField(

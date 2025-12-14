@@ -10,6 +10,7 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -92,5 +93,44 @@ class ResourceRepository @Inject constructor(
             }
 
         awaitClose { listener.remove() }
+    }
+
+    /**
+     * Add a new resource.
+     */
+    suspend fun addResource(resource: ResourceEntity): Result<Unit> {
+        return try {
+            val data = mapOf(
+                "title" to resource.title,
+                "subject" to resource.subject,
+                "semester" to resource.semester,
+                "year" to resource.year,
+                "type" to resource.type,
+                "fileUrl" to resource.fileUrl,
+                "fileSize" to resource.fileSize,
+                "uploadedBy" to resource.uploadedBy,
+                "uploadedAt" to resource.uploadedAt,
+                "downloadCount" to resource.downloadCount
+            )
+            // Use set with the specific ID
+            collection.document(resource.id).set(data).await()
+            resourceDao.upsert(resource)
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    /**
+     * Delete a resource.
+     */
+    suspend fun deleteResource(resourceId: String): Result<Unit> {
+        return try {
+            collection.document(resourceId).delete().await()
+            resourceDao.delete(resourceId)
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
     }
 }

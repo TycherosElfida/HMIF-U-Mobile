@@ -77,7 +77,7 @@ fun ManageEventsScreen(
                     ManageEventItem(
                         event = event,
                         onEdit = { onEditEvent(event.id) },
-                        onDelete = { /* TODO */ }
+                        onDelete = { viewModel.deleteEvent(event.id) }
                     )
                 }
             }
@@ -120,7 +120,9 @@ fun ManageEventItem(
                 IconButton(onClick = onEdit) {
                     Icon(Icons.Default.Edit, "Edit", tint = MaterialTheme.colorScheme.primary)
                 }
-                // Delete button could be here
+                IconButton(onClick = onDelete) {
+                    Icon(Icons.Default.Delete, "Delete", tint = MaterialTheme.colorScheme.error)
+                }
             }
         }
     }

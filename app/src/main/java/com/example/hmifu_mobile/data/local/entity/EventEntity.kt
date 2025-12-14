@@ -23,7 +23,7 @@ data class EventEntity(
     val currentParticipants: Int = 0,
     val organizerId: String,
     val organizerName: String = "",
-    val imageUrl: String? = null,
+    val imageBlob: ByteArray? = null,
     val isPinned: Boolean = false,
     val createdAt: Long,
     val updatedAt: Long = createdAt,

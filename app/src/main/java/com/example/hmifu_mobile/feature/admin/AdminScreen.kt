@@ -25,6 +25,7 @@ import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.SupervisorAccount
 import androidx.compose.material.icons.rounded.AdminPanelSettings
 import androidx.compose.material.icons.rounded.AccountBalanceWallet
+import androidx.compose.material.icons.rounded.School
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -84,6 +85,7 @@ fun AdminScreen(
     onEditAnnouncement: (String) -> Unit = {},
     onManageEvents: () -> Unit = {},
     onViewRegistrants: (String) -> Unit = {},
+    onManageResources: () -> Unit = {},
     onFinance: () -> Unit = {},
     onSecretariat: () -> Unit = {},
     onManageUsers: () -> Unit = {},
@@ -146,6 +148,10 @@ fun AdminScreen(
                 onManageEvents = {
                     showFabMenu = false
                     onManageEvents()
+                },
+                onManageResources = {
+                    showFabMenu = false
+                    onManageResources()
                 }
             )
         },
@@ -286,6 +292,56 @@ fun AdminScreen(
                     }
                 }
 
+                // Resources Management (Admin, Education Dept - assuming Admin for now)
+                if (uiState.isAdmin) {
+                    item {
+                        StaggeredAnimatedItem(index = 3) {
+                            GlassmorphicCard(
+                                modifier = Modifier.fillMaxWidth(),
+                                onClick = onManageResources,
+                                cornerRadius = HmifTheme.cornerRadius.md
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(HmifTheme.spacing.md)
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(48.dp)
+                                            .clip(RoundedCornerShape(HmifTheme.cornerRadius.md))
+                                            .background(HmifOrange.copy(alpha = 0.15f)),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Rounded.School,
+                                            contentDescription = null,
+                                            tint = HmifOrange,
+                                            modifier = Modifier.size(26.dp)
+                                        )
+                                    }
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text(
+                                            text = "Manage Resources",
+                                            style = MaterialTheme.typography.titleMedium,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                        Text(
+                                            text = "Bank Soal & Academic Files",
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                    Icon(
+                                        Icons.AutoMirrored.Filled.ArrowBack,
+                                        contentDescription = "Go",
+                                        modifier = Modifier.rotate(180f)
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+
                 // User Management (President & Vice President)
                 if (uiState.isPresident || uiState.isVicePresident) {
                     item {
@@ -391,10 +447,18 @@ private fun FabMenu(
     showMenu: Boolean,
     onToggle: () -> Unit,
     onManageAnnouncements: () -> Unit,
-    onManageEvents: () -> Unit
+    onManageEvents: () -> Unit,
+    onManageResources: () -> Unit
 ) {
     Column(horizontalAlignment = Alignment.End) {
         if (showMenu) {
+            FabMenuItem(
+                label = "Manage Resources",
+                icon = Icons.Rounded.School,
+                color = HmifOrange,
+                onClick = onManageResources
+            )
+            Spacer(modifier = Modifier.height(HmifTheme.spacing.sm))
             FabMenuItem(
                 label = "Manage Events",
                 icon = Icons.Default.Event,

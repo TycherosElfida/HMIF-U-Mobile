@@ -20,7 +20,7 @@ data class UserProfile(
     val angkatan: String = "",
     val concentration: String = "",
     val techStack: String = "",
-    val photoUrl: String? = null,
+    val photoBlob: ByteArray? = null,
     val role: String = "member"  // member, admin, moderator
 )
 
@@ -74,7 +74,7 @@ class UserRepository @Inject constructor(
                     angkatan = doc.getString("angkatan") ?: "",
                     concentration = doc.getString("concentration") ?: "",
                     techStack = doc.getString("techStack") ?: "",
-                    photoUrl = doc.getString("photoUrl"),
+                    photoBlob = doc.getBlob("photoBlob")?.toBytes(),
                     role = doc.getString("role") ?: "member",
                     createdAt = doc.getLong("createdAt") ?: System.currentTimeMillis(),
                     updatedAt = doc.getLong("updatedAt") ?: System.currentTimeMillis()
@@ -107,7 +107,7 @@ class UserRepository @Inject constructor(
                 "angkatan" to profile.angkatan,
                 "concentration" to profile.concentration,
                 "techStack" to profile.techStack,
-                "photoUrl" to profile.photoUrl,
+                "photoBlob" to if (profile.photoBlob != null) com.google.firebase.firestore.Blob.fromBytes(profile.photoBlob) else null,
                 "role" to profile.role,
                 "updatedAt" to System.currentTimeMillis()
             )
@@ -123,7 +123,7 @@ class UserRepository @Inject constructor(
                 angkatan = profile.angkatan,
                 concentration = profile.concentration,
                 techStack = profile.techStack,
-                photoUrl = profile.photoUrl,
+                photoBlob = profile.photoBlob,
                 role = profile.role,
                 updatedAt = System.currentTimeMillis()
             )
@@ -151,7 +151,7 @@ class UserRepository @Inject constructor(
                     angkatan = doc.getString("angkatan") ?: "",
                     concentration = doc.getString("concentration") ?: "",
                     techStack = doc.getString("techStack") ?: "",
-                    photoUrl = doc.getString("photoUrl"),
+                    photoBlob = doc.getBlob("photoBlob")?.toBytes(),
                     role = doc.getString("role") ?: "member"
                 )
                 Result.success(profile)
@@ -189,7 +189,7 @@ class UserRepository @Inject constructor(
                     angkatan = doc.getString("angkatan") ?: "",
                     concentration = doc.getString("concentration") ?: "",
                     techStack = doc.getString("techStack") ?: "",
-                    photoUrl = doc.getString("photoUrl"),
+                    photoBlob = doc.getBlob("photoBlob")?.toBytes(),
                     role = doc.getString("role") ?: "member"
                 )
             }
@@ -226,7 +226,7 @@ class UserRepository @Inject constructor(
         angkatan = angkatan,
         concentration = concentration,
         techStack = techStack,
-        photoUrl = photoUrl,
+        photoBlob = photoBlob,
         role = role
     )
 }

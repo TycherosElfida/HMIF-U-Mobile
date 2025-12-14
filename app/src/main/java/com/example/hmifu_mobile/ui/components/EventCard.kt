@@ -37,6 +37,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.graphics.asImageBitmap
 import com.example.hmifu_mobile.data.local.entity.EventCategory
 import com.example.hmifu_mobile.data.local.entity.EventEntity
 import com.example.hmifu_mobile.data.local.entity.EventStatus
@@ -85,20 +86,31 @@ fun EventCard(
     ) {
         Column {
             // Event Image (if available)
-            if (!event.imageUrl.isNullOrBlank()) {
+            if (event.imageBlob != null) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(140.dp)
                 ) {
-                    ImageKitImageWithAspectRatio(
-                        path = event.imageUrl,
-                        contentDescription = "Event image for ${event.title}",
-                        modifier = Modifier.fillMaxSize(),
-                        height = 140f,
-                        aspectRatioWidth = 16,
-                        aspectRatioHeight = 9
-                    )
+                    val bitmap = remember(event.imageBlob) {
+                        com.example.hmifu_mobile.util.ImageUtils.bytesToBitmap(event.imageBlob)
+                    }
+
+                    if (bitmap != null) {
+                        androidx.compose.foundation.Image(
+                            bitmap = bitmap.asImageBitmap(),
+                            contentDescription = "Event image for ${event.title}",
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = androidx.compose.ui.layout.ContentScale.Crop
+                        )
+                    } else {
+                        // Fallback/Placeholder
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(MaterialTheme.colorScheme.surfaceVariant)
+                        )
+                    }
 
                     // Gradient overlay for text readability
                     Box(
@@ -131,7 +143,7 @@ fun EventCard(
                 verticalArrangement = Arrangement.spacedBy(HmifTheme.spacing.sm)
             ) {
                 // Category + Status (if no image)
-                if (event.imageUrl.isNullOrBlank()) {
+                if (event.imageBlob == null) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
