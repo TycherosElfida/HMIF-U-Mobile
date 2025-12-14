@@ -11,15 +11,12 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.example.hmifu_mobile.data.local.entity.EventEntity
-import com.example.hmifu_mobile.feature.events.EventsViewModel
 import com.example.hmifu_mobile.ui.components.GlassmorphicCard
 import com.example.hmifu_mobile.ui.components.StaggeredAnimatedItem
-import com.example.hmifu_mobile.ui.theme.HmifTheme
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -29,21 +26,34 @@ fun ManageEventsScreen(
     onNavigateBack: () -> Unit = {},
     onEditEvent: (String) -> Unit = {},
     onCreateEvent: () -> Unit = {},
-    viewModel: EventsViewModel = hiltViewModel()
+    viewModel: ManageEventsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    val snackbarHostState = remember { SnackbarHostState() }
+    var showDeleteDialog by remember { mutableStateOf<String?>(null) }
 
-    // Use shared EventsViewModel but we might need a dedicated one if we implement delete here
-    // For now assuming we can add delete to EventsViewModel or just view/edit.
-    
-    // Note: EventsViewModel currently doesn't have delete. We might need to add it or create ManageEventsViewModel.
-    // Given the scope, let's stick to using EventsViewModel and maybe adding delete later if needed,
-    // or just let user edit. But "Manage" usually implies Delete.
-    
-    // Let's create a dedicated ManageEventsViewModel later if needed, but for now reuse or simpler:
-    // Actually, AdminViewModel has delete logic or CreateEventViewModel?
-    // Let's create a simple screen first.
+    if (showDeleteDialog != null) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = null },
+            title = { Text("Delete Event") },
+            text = { Text("Are you sure you want to delete this event? This action cannot be undone.") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        viewModel.deleteEvent(showDeleteDialog!!)
+                        showDeleteDialog = null
+                    },
+                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
+                ) {
+                    Text("Delete")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteDialog = null }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
 
     Scaffold(
         topBar = {
@@ -77,7 +87,7 @@ fun ManageEventsScreen(
                     ManageEventItem(
                         event = event,
                         onEdit = { onEditEvent(event.id) },
-                        onDelete = { viewModel.deleteEvent(event.id) }
+                        onDelete = { showDeleteDialog = event.id }
                     )
                 }
             }
