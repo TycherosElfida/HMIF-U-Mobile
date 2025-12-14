@@ -41,6 +41,8 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -119,105 +121,111 @@ fun HomeScreen(
         },
         containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
-        LazyColumn(
+        PullToRefreshBox(
+            isRefreshing = uiState.isRefreshing,
+            onRefresh = viewModel::refresh,
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding),
-            contentPadding = PaddingValues(
-                horizontal = HmifTheme.spacing.lg,
-                vertical = HmifTheme.spacing.md
-            ),
-            verticalArrangement = Arrangement.spacedBy(HmifTheme.spacing.xl)
+                .padding(padding)
         ) {
-            // Digital Membership Card (Hero)
-            item {
-                StaggeredAnimatedItem(index = 0) {
-                    DigitalMembershipCard(
-                        memberName = uiState.userName.ifBlank { "Member Name" },
-                        nim = uiState.userNim.ifBlank { "412022XXX" },
-                        angkatan = uiState.userAngkatan.ifBlank { "2022" },
-                        points = uiState.userPoints,
-                        photoBlob = uiState.userPhotoBlob,
-                        onClick = onMemberCardClick
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(
+                    horizontal = HmifTheme.spacing.lg,
+                    vertical = HmifTheme.spacing.md
+                ),
+                verticalArrangement = Arrangement.spacedBy(HmifTheme.spacing.xl)
+            ) {
+                // Digital Membership Card (Hero)
+                item {
+                    StaggeredAnimatedItem(index = 0) {
+                        DigitalMembershipCard(
+                            memberName = uiState.userName.ifBlank { "Member Name" },
+                            nim = uiState.userNim.ifBlank { "412022XXX" },
+                            angkatan = uiState.userAngkatan.ifBlank { "2022" },
+                            points = uiState.userPoints,
+                            photoBlob = uiState.userPhotoBlob,
+                            onClick = onMemberCardClick
+                        )
+                    }
+                }
+
+                // Quick Stats Row
+                item {
+                    StaggeredAnimatedItem(index = 1) {
+                        QuickStatsRow(
+                            points = uiState.userPoints,
+                            events = 12, // TODO: Get from events repository
+                            badges = 5 // TODO: Get from badges/achievements
+                        )
+                    }
+                }
+
+                // Quick Actions Grid
+                item {
+                    StaggeredAnimatedItem(index = 2) {
+                        QuickActionsSection(
+                            onScanQrClick = onScanQrClick,
+                            onResourcesClick = onResourcesClick,
+                            onCompetitionsClick = onCompetitionsClick,
+                            onCareersClick = onCareersClick
+                        )
+                    }
+                }
+
+                // Announcements Section Header
+                item {
+                    StaggeredAnimatedItem(index = 3) {
+                        SectionHeader(
+                            title = "📢 Announcements",
+                            subtitle = "Stay updated with HMIF"
+                        )
+                    }
+                }
+
+                // Category Filter
+                item {
+                    CategoryFilterRow(
+                        selectedCategory = uiState.selectedCategory,
+                        onCategorySelected = viewModel::selectCategory
                     )
                 }
-            }
 
-            // Quick Stats Row
-            item {
-                StaggeredAnimatedItem(index = 1) {
-                    QuickStatsRow(
-                        points = uiState.userPoints,
-                        events = 12, // TODO: Get from events repository
-                        badges = 5 // TODO: Get from badges/achievements
-                    )
-                }
-            }
+                // Announcements Content
+                when {
+                    uiState.isLoading && uiState.announcements.isEmpty() -> {
+                        items(4) { index ->
+                            StaggeredAnimatedItem(index = 4 + index) {
+                                SkeletonCard(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    height = 120.dp
+                                )
+                            }
+                        }
+                    }
 
-            // Quick Actions Grid
-            item {
-                StaggeredAnimatedItem(index = 2) {
-                    QuickActionsSection(
-                        onScanQrClick = onScanQrClick,
-                        onResourcesClick = onResourcesClick,
-                        onCompetitionsClick = onCompetitionsClick,
-                        onCareersClick = onCareersClick
-                    )
-                }
-            }
+                    uiState.announcements.isEmpty() -> {
+                        item {
+                            EmptyAnnouncementsState()
+                        }
+                    }
 
-            // Announcements Section Header
-            item {
-                StaggeredAnimatedItem(index = 3) {
-                    SectionHeader(
-                        title = "📢 Announcements",
-                        subtitle = "Stay updated with HMIF"
-                    )
-                }
-            }
-
-            // Category Filter
-            item {
-                CategoryFilterRow(
-                    selectedCategory = uiState.selectedCategory,
-                    onCategorySelected = viewModel::selectCategory
-                )
-            }
-
-            // Announcements Content
-            when {
-                uiState.isLoading && uiState.announcements.isEmpty() -> {
-                    items(4) { index ->
-                        StaggeredAnimatedItem(index = 4 + index) {
-                            SkeletonCard(
-                                modifier = Modifier.fillMaxWidth(),
-                                height = 120.dp
-                            )
+                    else -> {
+                        itemsIndexed(
+                            items = uiState.announcements,
+                            key = { _, announcement -> announcement.id }
+                        ) { index, announcement ->
+                            StaggeredAnimatedItem(index = 4 + index) {
+                                AnnouncementCard(announcement = announcement)
+                            }
                         }
                     }
                 }
 
-                uiState.announcements.isEmpty() -> {
-                    item {
-                        EmptyAnnouncementsState()
-                    }
+                // Bottom spacing
+                item {
+                    Spacer(modifier = Modifier.height(HmifTheme.spacing.huge))
                 }
-
-                else -> {
-                    itemsIndexed(
-                        items = uiState.announcements,
-                        key = { _, announcement -> announcement.id }
-                    ) { index, announcement ->
-                        StaggeredAnimatedItem(index = 4 + index) {
-                            AnnouncementCard(announcement = announcement)
-                        }
-                    }
-                }
-            }
-
-            // Bottom spacing
-            item {
-                Spacer(modifier = Modifier.height(HmifTheme.spacing.huge))
             }
         }
     }

@@ -21,7 +21,8 @@ data class EventsUiState(
     val selectedCategory: EventCategory? = null,
     val showUpcomingOnly: Boolean = true,
     val isLoading: Boolean = false,
-    val errorMessage: String? = null
+    val errorMessage: String? = null,
+    val isRefreshing: Boolean = false
 )
 
 /**
@@ -111,6 +112,17 @@ class EventsViewModel @Inject constructor(
                 .onFailure { e ->
                     _uiState.update { it.copy(isLoading = false, errorMessage = e.message) }
                 }
+        }
+    }
+
+    fun refresh() {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isRefreshing = true) }
+            val result = eventRepository.refresh()
+            result.onFailure { e ->
+                _uiState.update { it.copy(errorMessage = e.message) }
+            }
+            _uiState.update { it.copy(isRefreshing = false) }
         }
     }
 }

@@ -40,6 +40,8 @@ import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -130,38 +132,44 @@ fun EventsScreen(
         },
         containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
-        Column(
+        PullToRefreshBox(
+            isRefreshing = uiState.isRefreshing,
+            onRefresh = viewModel::refresh,
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
         ) {
-            // Upcoming only toggle with enhanced styling
-            UpcomingToggleRow(
-                isChecked = uiState.showUpcomingOnly,
-                onCheckedChange = viewModel::toggleUpcomingOnly
-            )
+            Column(
+                modifier = Modifier.fillMaxSize()
+            ) {
+                // Upcoming only toggle with enhanced styling
+                UpcomingToggleRow(
+                    isChecked = uiState.showUpcomingOnly,
+                    onCheckedChange = viewModel::toggleUpcomingOnly
+                )
 
-            // Category filter chips
-            CategoryFilterRow(
-                selectedCategory = uiState.selectedCategory,
-                onCategorySelected = viewModel::selectCategory
-            )
+                // Category filter chips
+                CategoryFilterRow(
+                    selectedCategory = uiState.selectedCategory,
+                    onCategorySelected = viewModel::selectCategory
+                )
 
-            // Content
-            when {
-                uiState.isLoading && uiState.events.isEmpty() -> {
-                    LoadingState()
-                }
+                // Content
+                when {
+                    uiState.isLoading && uiState.events.isEmpty() -> {
+                        LoadingState()
+                    }
 
-                uiState.events.isEmpty() -> {
-                    EmptyState()
-                }
+                    uiState.events.isEmpty() -> {
+                        EmptyState()
+                    }
 
-                else -> {
-                    EventsList(
-                        events = uiState.events,
-                        onEventClick = onEventClick
-                    )
+                    else -> {
+                        EventsList(
+                            events = uiState.events,
+                            onEventClick = onEventClick
+                        )
+                    }
                 }
             }
         }

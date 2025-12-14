@@ -169,4 +169,50 @@ class EventRepository @Inject constructor(
             Result.failure(e)
         }
     }
+
+    /**
+     * Refresh events from Firestore (Server).
+     */
+    suspend fun refresh(): Result<Unit> {
+        return try {
+            val snapshot = collection
+                 .orderBy("startTime", Query.Direction.ASCENDING)
+                 .limit(100)
+                 .get(com.google.firebase.firestore.Source.SERVER)
+                 .await()
+
+             val events = snapshot.documents.mapNotNull { doc ->
+                 try {
+                     EventEntity(
+                         id = doc.id,
+                         title = doc.getString("title") ?: "",
+                         description = doc.getString("description") ?: "",
+                         category = doc.getString("category") ?: "other",
+                         location = doc.getString("location") ?: "",
+                         isOnline = doc.getBoolean("isOnline") ?: false,
+                         meetingUrl = doc.getString("meetingUrl"),
+                         startTime = doc.getLong("startTime") ?: 0L,
+                         endTime = doc.getLong("endTime") ?: 0L,
+                         registrationDeadline = doc.getLong("registrationDeadline"),
+                         maxParticipants = doc.getLong("maxParticipants")?.toInt(),
+                         currentParticipants = doc.getLong("currentParticipants")?.toInt()
+                             ?: 0,
+                         organizerId = doc.getString("organizerId") ?: "",
+                         organizerName = doc.getString("organizerName") ?: "",
+                         imageBlob = doc.getBlob("imageBlob")?.toBytes(),
+                         isPinned = doc.getBoolean("isPinned") ?: false,
+                         createdAt = doc.getLong("createdAt") ?: System.currentTimeMillis(),
+                         updatedAt = doc.getLong("updatedAt") ?: System.currentTimeMillis()
+                     )
+                 } catch (e: Exception) {
+                     null
+                 }
+             }
+
+             eventDao.upsertAll(events)
+             Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 }

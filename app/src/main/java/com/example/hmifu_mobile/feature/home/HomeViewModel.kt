@@ -28,7 +28,8 @@ data class HomeUiState(
     val userAngkatan: String = "",
     val userPhotoBlob: ByteArray? = null,
     val userPoints: Int = 0,
-    val hasUnreadNotifications: Boolean = false
+    val hasUnreadNotifications: Boolean = false,
+    val isRefreshing: Boolean = false
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -49,6 +50,7 @@ data class HomeUiState(
         } else if (other.userPhotoBlob != null) return false
         if (userPoints != other.userPoints) return false
         if (hasUnreadNotifications != other.hasUnreadNotifications) return false
+        if (isRefreshing != other.isRefreshing) return false
 
         return true
     }
@@ -64,6 +66,7 @@ data class HomeUiState(
         result = 31 * result + (userPhotoBlob?.contentHashCode() ?: 0)
         result = 31 * result + userPoints
         result = 31 * result + hasUnreadNotifications.hashCode()
+        result = 31 * result + isRefreshing.hashCode()
         return result
     }
 }
@@ -160,5 +163,18 @@ class HomeViewModel @Inject constructor(
 
     fun clearError() {
         _uiState.update { it.copy(errorMessage = null) }
+    }
+
+    fun refresh() {
+        viewModelScope.launch {
+             _uiState.update { it.copy(isRefreshing = true) }
+             val result = announcementRepository.refresh()
+             result.onFailure { e ->
+                 _uiState.update { it.copy(errorMessage = e.message) }
+             }
+             // Load profile again too
+             userRepository.syncCurrentUser()
+             _uiState.update { it.copy(isRefreshing = false) }
+        }
     }
 }

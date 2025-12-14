@@ -285,7 +285,7 @@ private fun PremiumMemberCard(uiState: MemberCardUiState) {
 
                 // Logo
                 Image(
-                    painter = painterResource(id = R.drawable.logo_hmif),
+                    painter = painterResource(id = R.drawable.logo_hmif2),
                     contentDescription = "HMIF Logo",
                     modifier = Modifier
                         .size(48.dp)
